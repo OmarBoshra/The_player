@@ -1,0 +1,112 @@
+<resources>
+    <string name="app_name">The Player</string>
+    <string name="albums">Albums</string>
+    <string name="Music">Music</string>
+    <string name="now">Now Playing</string>
+    <string name="home">Home</string>
+
+
+    <string-array name="albumnames">
+        <item>the steam</item>
+        <item>mid country</item>
+        <item>life</item>
+        <item>beach head</item>
+        <item>paradise</item>
+        <item>my soul</item>
+    </string-array>
+
+<string-array name="thesteam">
+        <item>hello</item>
+        <item>come my love</item>
+        <item>the wind</item>
+        <item>sunny day</item>
+        <item>in winter</item>
+        <item>a breath</item>
+    </string-array>
+
+   <string-array name="midcountry">
+        <item>on the road</item>
+        <item>street dance</item>
+        <item>come in baby</item>
+        <item>lets ride</item>
+        <item>over the hills</item>
+        <item>down the road</item>
+    </string-array>
+ <string-array name="life">
+        <item>come baby</item>
+        <item>on the run</item>
+        <item>say goodbye</item>
+        <item>its time</item>
+        <item>the fire</item>
+        <item>together</item>
+    </string-array>
+ <string-array name="beachhead">
+        <item>that morning</item>
+        <item>the island</item>
+        <item>sea song</item>
+        <item>the whale</item>
+        <item>lets surf</item>
+        <item>its sunset</item>
+    </string-array>
+   <string-array name="paradise">
+        <item>there we are</item>
+        <item>the birds</item>
+        <item>beauty</item>
+        <item>lovers</item>
+        <item>in the sun</item>
+        <item>on the beach</item>
+    </string-array>
+   <string-array name="mysoul">
+        <item>lets be</item>
+        <item>with you</item>
+        <item>longing</item>
+        <item>come back</item>
+        <item>a smile</item>
+        <item>your eyes</item>
+    </string-array>
+
+    <string-array name="combination">
+        <item>hello</item>
+        <item>come my love</item>
+        <item>the wind</item>
+        <item>sunny day</item>
+        <item>in winter</item>
+        <item>a breath</item>
+
+        <item>on the road</item>
+        <item>street dance</item>
+        <item>come in baby</item>
+        <item>lets ride</item>
+        <item>over the hills</item>
+        <item>down the road</item>
+
+        <item>come baby</item>
+        <item>on the run</item>
+        <item>say goodbye</item>
+        <item>its time</item>
+        <item>the fire</item>
+        <item>together</item>
+
+        <item>that morning</item>
+        <item>the island</item>
+        <item>sea song</item>
+        <item>the whale</item>
+        <item>lets surf</item>
+        <item>its sunset</item>
+
+        <item>there we are</item>
+        <item>the birds</item>
+        <item>beauty</item>
+        <item>lovers</item>
+        <item>in the sun</item>
+        <item>on the beach</item>
+
+        <item>lets be</item>
+        <item>with you</item>
+        <item>longing</item>
+        <item>come back</item>
+        <item>a smile</item>
+        <item>your eyes</item>
+    </string-array>
+</resources>
+

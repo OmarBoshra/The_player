@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <TextView
+        android:id="@+id/albums"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="8dp"
+        android:fontFamily="cursive"
+        android:text="@string/Music"
+        android:textColor="@android:color/white"
+        android:textSize="34sp" />
+
+    <ListView
+        android:id="@+id/musiclist"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomtab"
+        android:layout_below="@id/albums" />
+
+    <LinearLayout
+        android:id="@+id/bottomtab"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/toalbums"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/fields"
+            android:fontFamily="cursive"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/albums"
+            android:textAllCaps="false"
+            android:textSize="19sp" />
+
+        <Button
+            android:id="@+id/toHome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/fields"
+
+            android:fontFamily="cursive"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/home"
+            android:textAllCaps="false"
+
+            android:textSize="19sp" />
+
+        <Button
+            android:id="@+id/toplayingsong"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:background="@drawable/fields"
+            android:fontFamily="cursive"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/now"
+            android:textAllCaps="false"
+            android:textSize="19sp" />
+
+
+    </LinearLayout>
+</RelativeLayout>
