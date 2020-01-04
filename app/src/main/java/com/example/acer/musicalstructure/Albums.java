@@ -2,23 +2,32 @@ package com.example.acer.musicalstructure;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.provider.DocumentFile;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class Albums extends AppCompatActivity {
     private Intent tomusic;
     private String[] albumnames;
+    private SharedPreferences pref;
+    private dialog loading = new dialog(Albums.this);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_albums);
 
+        loading.Loading();
 
         Button tohome = findViewById(R.id.toHome);
         Button gomusic = findViewById(R.id.tomusic);
@@ -29,25 +38,22 @@ public class Albums extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent tohome = new Intent(Albums.this, MainActivity.class);
-                tohome.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
                 startActivity(tohome);
-
+                finish();
 
             }
         });
 
-        final SharedPreferences pref = this.getSharedPreferences("MyPref", 0);
+        pref = this.getSharedPreferences("MyPref", 0);
 
         tonowplaying.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (pref.contains("songname")) {
-                    Intent toNowPlaying = new Intent(Albums.this, NowPlaying.class);
-                    toNowPlaying.putExtra("frommainpage", 0);
-                    startActivity(toNowPlaying);
-                } else
-                    Toast.makeText(Albums.this, "No playing songs", Toast.LENGTH_SHORT).show();
+
+                if (musicinfo.issongopen)
+                    onBackPressed();
+                else
+                    musicinfo.navigation(Albums.this, 3, pref);
 
 
             }
@@ -55,31 +61,73 @@ public class Albums extends AppCompatActivity {
         gomusic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent tomusic = new Intent(Albums.this, music.class);
-                tomusic.putExtra("viewmusic", 0);
-                startActivity(tomusic);
+                loading.Loading();
+                musicinfo.navigation(Albums.this, 1, pref);
+
             }
         });
 
         ListView albums = findViewById(R.id.albumslist);
 
-        int[] images = new musicinfo(this).Images();
-        albumnames = new musicinfo(this).Albumnames();
-        Adapter a = new Adapter(null, images, 0, null, this, albumnames);
+//showing albums
+
+        final List<String> AlbumNames = musicinfo.getAlbumNames(this, musicinfo.albumUris);
+
+        final List<Bitmap> Images = musicinfo.getImages(this, musicinfo.albumUris);
+
+        Adapter a = new Adapter(null, Images, 0, null, this, AlbumNames);
+
         albums.setAdapter(a);
 
 
         tomusic = new Intent(Albums.this, music.class);
+
+        loading.dismiss();
+
         albums.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                tomusic.putExtra("fromalbum", position);
-                tomusic.putExtra("album", albumnames[position]);
+
+                Uri albumUri = musicinfo.albumUris.get(position);
+
+                String albumname = musicinfo.getAlbumNames(Albums.this, Arrays.asList(albumUri)).get(0);
+
+                DocumentFile albumstree = DocumentFile.fromTreeUri(Albums.this, Uri.parse(pref.getString("gotAlbums", null)));
+
+                List<Uri> relatedMusic = musicinfo.getFiles(albumstree, 4, Albums.this, albumname);
+
+                musicinfo.musicUris = relatedMusic;
+
+                tomusic.putExtra("almumname", albumname);// music will show opnly album music
+                tomusic.putExtra("albumtree", pref.getString("gotAlbums", null));// music will show opnly album music
+
+                finish();
 
                 startActivity(tomusic);
             }
         });
 
     }
+
+    public void NewAlbumsPath(View view) {
+
+        musicinfo.initializeIntent(Albums.this);
+
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (data != null) {
+            musicinfo.setUris(this, data.getData(), pref, requestCode);
+
+            finish();
+            loading.dismiss();
+        }
+
+
+    }
+
 }

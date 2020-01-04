@@ -3,6 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black"
+
+
     android:padding="8dp">
 
     <ImageView
@@ -19,29 +21,24 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="6dp"
-        android:layout_marginTop="36dp"
         android:layout_marginBottom="8dp"
         android:layout_toRightOf="@id/albumimage"
         android:fontFamily="cursive"
-        android:text="@string/albums"
         android:textColor="@android:color/white"
-        android:textSize="34sp" />
+        android:textSize="30sp" />
 
     <TextView
         android:id="@+id/song"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/albumname"
-        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
 
-        android:layout_marginLeft="6dp"
+        android:layout_marginStart="6dp"
 
-        android:layout_marginTop="106dp"
         android:layout_marginBottom="8dp"
-        android:layout_toRightOf="@id/albumimage"
+        android:layout_toEndOf="@id/albumimage"
         android:fontFamily="cursive"
-        android:text="@string/Music"
 
         android:textColor="@android:color/white"
         android:textSize="24sp" />

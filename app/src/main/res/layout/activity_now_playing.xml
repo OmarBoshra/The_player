@@ -2,17 +2,25 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black">
+    android:background="@android:color/black"
+
+    >
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/playingtab">
+        android:layout_above="@id/playingtab"
+        android:fillViewport="true"
+        android:id="@+id/scv"
+        >
 
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp">
+            android:layout_height="0dp"
+            android:gravity="center"
+
+            >
 
 
             <TextView
@@ -24,14 +32,19 @@
                 android:layout_marginBottom="8dp"
                 android:fontFamily="cursive"
                 android:text="@string/now"
+
+
+
                 android:textColor="@android:color/white"
                 android:textSize="34sp" />
 
             <ImageView
                 android:id="@+id/viewedimage"
-                android:layout_width="300dp"
-                android:layout_height="300dp"
-                android:layout_below="@id/songplay" />
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+android:layout_centerHorizontal="true"
+                android:layout_below="@id/songplay"
+                android:layout_marginTop="18dp" />
 
             <TextView
                 android:id="@+id/songname"
@@ -42,7 +55,9 @@
                 android:gravity="center"
                 android:text="Song Name"
                 android:textColor="@android:color/white"
-                android:textSize="24sp" />
+                android:textSize="24sp"
+                android:layout_marginTop="18dp"
+                />
 
             <TextView
                 android:id="@+id/albumname"
@@ -58,6 +73,62 @@
         </RelativeLayout>
     </ScrollView>
 
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:padding="8dp"
+        android:alpha="0.6"
+        android:src="@android:drawable/stat_sys_headset"
+        android:backgroundTint="@android:color/black"
+        android:id="@+id/songpath"
+
+        android:onClick="NewSongPath"
+        />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/playingtab"
+        android:padding="5dp"
+        >
+
+        <TextView
+            android:id="@+id/textViewElapsedTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="0:00"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+
+            android:minWidth="35dp"
+            android:fontFamily="cursive"
+
+            android:textColor="@android:color/white" />
+
+        <android.support.v7.widget.AppCompatSeekBar
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBar"
+            android:layout_gravity="center_horizontal"
+             android:progressTint="@color/colorAccent"
+            android:secondaryProgress="@android:integer/config_longAnimTime"
+            android:layout_weight="0.8"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="0:00"
+            android:id="@+id/textViewDuration"
+            android:layout_gravity="center_horizontal"
+            android:fontFamily="cursive"
+
+            android:textColor="@android:color/white"/>
+
+
+    </LinearLayout>
     <LinearLayout
         android:id="@+id/playingtab"
         android:layout_width="match_parent"
@@ -83,7 +154,7 @@
             android:src="@drawable/stop" />
 
         <ImageButton
-            android:id="@+id/play-pause"
+            android:id="@+id/play_pause"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"

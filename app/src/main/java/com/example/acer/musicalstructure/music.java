@@ -2,24 +2,33 @@ package com.example.acer.musicalstructure;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.ByteArrayOutputStream;
+import java.util.List;
 
 public class music extends AppCompatActivity {
     private Intent tosong;
+    private SharedPreferences pref;
+
+    private dialog loading = new dialog(music.this);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
 
+        loading.Loading();
 
         Button tohome = findViewById(R.id.toHome);
         Button toalbum = findViewById(R.id.toalbums);
@@ -29,80 +38,148 @@ public class music extends AppCompatActivity {
         toalbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent toalbums = new Intent(music.this, Albums.class);
-                startActivity(toalbums);
+                loading.Loading();
+                musicinfo.navigation(music.this, 2, pref);
+
 
             }
         });
 
-        final SharedPreferences pref = this.getSharedPreferences("MyPref", 0);
+        pref = this.getSharedPreferences("MyPref", 0);
 
         tonowplaying.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (pref.contains("songname")) {
-                    Intent toNowPlaying = new Intent(music.this, NowPlaying.class);
-                    toNowPlaying.putExtra("frommainpage", 0);
-                    startActivity(toNowPlaying);
-                } else
-                    Toast.makeText(music.this, "No playing songs", Toast.LENGTH_SHORT).show();
 
-
+                if (musicinfo.issongopen)
+                    onBackPressed();
+                else
+                    musicinfo.navigation(music.this, 3, pref);
             }
         });
         tohome.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent tohome = new Intent(music.this, MainActivity.class);
-                tohome.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(tohome);
+                finish();
             }
         });
 
-
-        ListView music = findViewById(R.id.musiclist);
-        int[] images = new musicinfo(this).Images();
-        String[][] musicnames = new musicinfo(this).Musicnames();
-        if (getIntent().getExtras() != null) {
-
-            Adapter a;
-            if (getIntent().getExtras().containsKey("fromalbum")) {
-                String albumname = getIntent().getStringExtra("album");
-
-                int musicnumber = getIntent().getIntExtra("fromalbum", -1);
-
-                a = new Adapter(musicnames[musicnumber], null, images[musicnumber], albumname, this, null);
-                music.setAdapter(a);
+        musicinfo.albumUris = null;//remove extra uris
 
 
-            } else {
+        if (getIntent().getExtras() != null) {// in case of albums
+            if (getIntent().getExtras().containsKey("almumname")) {//c
 
-                String[] albumnames = new musicinfo(this).Albumnames();
-                a = new Adapter(getResources().getStringArray(R.array.combination), images, -1, null, this, albumnames);
-                music.setAdapter(a);
+                final ImageButton favoritAlbum = findViewById(R.id.favalbum);
+
+
+                if (pref.contains("gotmusic"))
+                    favoritAlbum.animate().alpha(1).setDuration(1800).start();
+                else {
+                    favoritAlbum.setVisibility(View.GONE);//to prevent clicking by mistake
+                    setfavalbum(pref);
+
+                }
+                favoritAlbum.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        setfavalbum(pref);
+
+                        favoritAlbum.animate().alpha(0).setDuration(1200).translationYBy(-18).start();
+                        Toast.makeText(music.this, "favorite playlist set", Toast.LENGTH_SHORT).show();
+
+                    }
+                });
+
 
             }
-
-
         }
+
+
+        final ListView music = findViewById(R.id.musiclist);
+
+// showing these
+        final List<String> musicNames = musicinfo.getMusicNames(this, musicinfo.musicUris);
+
+        final List<String> AlbumNames = musicinfo.getAlbumNames(this, musicinfo.musicUris);
+
+        final List<Bitmap> Images = musicinfo.getImages(this, musicinfo.musicUris);
+        //
+
+
+        Adapter a = new Adapter(musicNames, Images, -1, null, this, AlbumNames);
+        music.setAdapter(a);
+
         tosong = new Intent(music.this, NowPlaying.class);
+
+
+        loading.dismiss();
 
         music.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
 
-                TextView albumview = view.findViewById(R.id.albumname);
-                TextView songview = view.findViewById(R.id.song);
-                ImageView albumimage = view.findViewById(R.id.albumimage);
+                String selectedMusic = musicNames.get(position);
+                String selectedAlbumName = AlbumNames.get(position);
+                Bitmap selectedImage = Images.get(position);
 
-                tosong.putExtra("songname", songview.getText().toString());
+                //convert image to byte array
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                selectedImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                byte[] byteArray = stream.toByteArray();
 
-                tosong.putExtra("albumpicture", (Integer) albumimage.getTag());
-                tosong.putExtra("albumname", albumview.getText().toString());
+                Uri selected = musicinfo.musicUris.get(position);
+                tosong.putExtra("songUri", selected);
+                tosong.putExtra("songname", selectedMusic);
+                tosong.putExtra("albumpicture", byteArray);
+                tosong.putExtra("albumname", selectedAlbumName);
+                tosong.putExtra("urlposition", position);
+                tosong.putExtra("getDuration", musicinfo.getDuration(music.this, selected));
+
+                if (!pref.contains("gotsong")) {// if no fav music set this one
+                    musicinfo.setpref(music.this, pref, 3, selected);
+                }
+
+                finish();
 
                 startActivity(tosong);
             }
         });
     }
+
+    private void setfavalbum(SharedPreferences pref) {
+        SharedPreferences.Editor editor = pref.edit();
+
+        editor = pref.edit();
+        editor.putString("favoritalbum", getIntent().getStringExtra("almumname"));
+        editor.putString("gotmusic", getIntent().getStringExtra("albumtree"));
+        editor.apply();
+    }
+
+    public void NewMusicPath(View view) {
+
+        musicinfo.initializeIntent(music.this);
+        pref.edit().remove("favoritalbum").apply();
+
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (data != null) {
+            musicinfo.setUris(this, data.getData(), pref, requestCode);
+
+            finish();
+            loading.dismiss();
+        }
+
+
+    }
+
+
 }
