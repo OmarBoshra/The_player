@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.provider.DocumentFile;
@@ -286,6 +287,7 @@ public class NowPlaying extends AppCompatActivity {
         Button gomusic = findViewById(R.id.tomusic);
         Button toalbum = findViewById(R.id.toalbums);
 
+       final Handler handler = new Handler();
 
         tohome.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -302,6 +304,14 @@ public class NowPlaying extends AppCompatActivity {
                 loading.Loading();
                 musicinfo.navigation(NowPlaying.this, 1, pref);
 
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        loading.dismiss();
+                    }
+                },100);
+
+
             }
         });
         toalbum.setOnClickListener(new View.OnClickListener() {
@@ -309,6 +319,13 @@ public class NowPlaying extends AppCompatActivity {
             public void onClick(View v) {
                 loading.Loading();
                 musicinfo.navigation(NowPlaying.this, 2, pref);
+
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        loading.dismiss();
+                    }
+                },100);
 
             }
         });
