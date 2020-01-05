@@ -1,4 +1,4 @@
-package com.example.acer.musicalstructure;
+package com.omar.acer.musicalstructure;
 
 import android.Manifest;
 import android.app.Dialog;
@@ -100,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
 
     }
 

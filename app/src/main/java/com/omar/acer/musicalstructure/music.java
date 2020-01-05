@@ -1,4 +1,4 @@
-package com.example.acer.musicalstructure;
+package com.omar.acer.musicalstructure;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -165,7 +165,7 @@ public class music extends AppCompatActivity {
     public void NewMusicPath(View view) {
 
         musicinfo.initializeIntent(music.this);
-        pref.edit().remove("favoritalbum").apply();
+
 
 
     }
@@ -175,7 +175,7 @@ public class music extends AppCompatActivity {
 
         if (data != null) {
             musicinfo.setUris(this, data.getData(), pref, requestCode);
-
+            pref.edit().remove("favoritalbum").apply();
             loading.dismiss();
             finish();
 

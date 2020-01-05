@@ -57,7 +57,7 @@
             android:checkMarkTint="@color/colorAccent"
             android:fontFamily="cursive"
             android:text="Restart song by default"
-            android:textSize="15sp"
+            android:textSize="17sp"
             android:textStyle="bold" />
 
         <CheckBox
@@ -68,7 +68,7 @@
 
             android:fontFamily="cursive"
             android:text="Go to next song by default"
-            android:textSize="15sp"
+            android:textSize="17sp"
             android:textStyle="bold"
 
             />
@@ -81,7 +81,7 @@
 
             android:fontFamily="cursive"
             android:text="Stop when song finishes"
-            android:textSize="15sp"
+            android:textSize="17sp"
             android:textStyle="bold" />
 
         <CheckBox
@@ -92,7 +92,7 @@
 
             android:fontFamily="cursive"
             android:text="Open fav song by default"
-            android:textSize="15sp"
+            android:textSize="17sp"
             android:textStyle="bold" />
 
     </LinearLayout>

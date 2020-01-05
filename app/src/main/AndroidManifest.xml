@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.acer.musicalstructure">
+    package="com.omar.acer.musicalstructure">
 
 
 
@@ -15,7 +15,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name="com.omar.acer.musicalstructure.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.CHOOSER" />
@@ -23,9 +23,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Albums" />
-        <activity android:name=".music" />
-        <activity android:name=".NowPlaying">
+        <activity android:name="com.omar.acer.musicalstructure.Albums" />
+        <activity android:name="com.omar.acer.musicalstructure.music" />
+        <activity android:name="com.omar.acer.musicalstructure.NowPlaying">
         <intent-filter>
             <action android:name="android.intent.action.CHOOSER" />
 
@@ -33,7 +33,7 @@
         </intent-filter>
         </activity>
 
-        <service  android:enabled="true" android:name=".MediaPlaybackService" />
+        <service  android:enabled="true" android:name="com.omar.acer.musicalstructure.MediaPlaybackService" />
 
     </application>
 

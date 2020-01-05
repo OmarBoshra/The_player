@@ -1,4 +1,4 @@
-package com.example.acer.musicalstructure;
+package com.omar.acer.musicalstructure;
 
 import android.app.Dialog;
 import android.content.Context;

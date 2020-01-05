@@ -1,4 +1,4 @@
-package com.example.acer.musicalstructure;
+package com.omar.acer.musicalstructure;
 
 import android.app.Activity;
 import android.content.Context;
@@ -46,7 +46,7 @@ public class musicinfo {
 
         switch (activity.getComponentName().getClassName()) {
 
-            case "com.example.acer.musicalstructure.NowPlaying":
+            case "com.omar.acer.musicalstructure.NowPlaying":
 
                 Toast.makeText(activity, "Choose a song to play", Toast.LENGTH_SHORT).show();
 
@@ -63,12 +63,12 @@ public class musicinfo {
                 Intent folderIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                 folderIntent.createChooser(folderIntent, "Choose The playlist folder");
 
-                if (activity.getComponentName().getClassName().equals("com.example.acer.musicalstructure.music")) {
+                if (activity.getComponentName().getClassName().equals("com.omar.acer.musicalstructure.music")) {
                     Toast.makeText(activity, "Choose The playlist folder", Toast.LENGTH_LONG).show();
                     activity.startActivityForResult(folderIntent, 1);
 
                 } else {
-                    Toast.makeText(activity, "Choose The playlist folder", Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity, "Choose The albums folder", Toast.LENGTH_LONG).show();
                     activity.startActivityForResult(folderIntent, 2);
 
                 }
@@ -313,6 +313,8 @@ return;
         List<Uri> fileUris = new ArrayList<>();
         boolean gotmp3 = false;
         DocumentFile[] files = df.listFiles();
+
+
 
         String albumName = albumname != null ? albumname : null;
 
