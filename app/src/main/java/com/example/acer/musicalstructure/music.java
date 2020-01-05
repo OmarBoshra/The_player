@@ -41,7 +41,6 @@ public class music extends AppCompatActivity {
                 loading.Loading();
                 musicinfo.navigation(music.this, 2, pref);
 
-
             }
         });
 
@@ -53,8 +52,11 @@ public class music extends AppCompatActivity {
 
                 if (musicinfo.issongopen)
                     onBackPressed();
-                else
+                else{
+                    loading.Loading();
                     musicinfo.navigation(music.this, 3, pref);
+
+                }
             }
         });
         tohome.setOnClickListener(new View.OnClickListener() {
@@ -174,8 +176,9 @@ public class music extends AppCompatActivity {
         if (data != null) {
             musicinfo.setUris(this, data.getData(), pref, requestCode);
 
-            finish();
             loading.dismiss();
+            finish();
+
         }
 
 

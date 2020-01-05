@@ -235,10 +235,6 @@ public class musicinfo {
 
     static void navigation(Activity activity, int requestcode, SharedPreferences pref) {
 
-//todo research if it can be implemented
-
-
-
         switch (requestcode) {
 
 
@@ -252,7 +248,7 @@ public class musicinfo {
                 if (pref.contains("gotsong")) {
 
                     musicinfo.intents(activity, 3);
-
+                    activity.finish();
                 } else {
 
                     Toast.makeText(activity, "Choose a song to play", Toast.LENGTH_SHORT).show();
@@ -267,11 +263,12 @@ public class musicinfo {
             case 2:
 
                 if (pref.contains("gotAlbums")) {
-                    setUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 1);
+                    setUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 2);
                 } else if (pref.contains("gotmusic"))
-                    setUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 1);
+                    setUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 2);
                 else if (pref.contains("gotparentSongFolderUri"))
-                    setUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 1);
+                    setUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 2);
+
 
                 else {
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -279,8 +276,10 @@ public class musicinfo {
                     Toast.makeText(activity, "Choose The Albums folder", Toast.LENGTH_LONG).show();
 
                     activity.startActivityForResult(intent, 2);
-
+return;
                 }
+                if(!(activity instanceof NowPlaying))
+                    activity.finish();
                 break;
             case 1:
 
@@ -297,8 +296,10 @@ public class musicinfo {
                     Toast.makeText(activity, "Choose The playlist folder", Toast.LENGTH_LONG).show();
 
                     activity.startActivityForResult(intent, 1);
-
+                    return;
                 }
+                if(!(activity instanceof NowPlaying))
+                    activity.finish();
 
                 break;
 

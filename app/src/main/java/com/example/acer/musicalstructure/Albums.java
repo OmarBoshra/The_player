@@ -49,11 +49,13 @@ public class Albums extends AppCompatActivity {
         tonowplaying.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (musicinfo.issongopen)
                     onBackPressed();
-                else
+                else{
+                    loading.Loading();
                     musicinfo.navigation(Albums.this, 3, pref);
+
+                }
 
 
             }
@@ -63,7 +65,6 @@ public class Albums extends AppCompatActivity {
             public void onClick(View v) {
                 loading.Loading();
                 musicinfo.navigation(Albums.this, 1, pref);
-
             }
         });
 

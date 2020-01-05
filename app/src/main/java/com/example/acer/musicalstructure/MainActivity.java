@@ -65,7 +65,8 @@ public class MainActivity extends AppCompatActivity {
 
         pref = this.getSharedPreferences("MyPref", 0);
 
-        if (pref.contains("favorite") && pref.getInt("favorite", 0) == 1) {
+
+        if (getIntent().getAction()!=null&&pref.contains("favorite") && pref.getInt("favorite", 0) == 1) {
 
             musicinfo.intents(this, 3);
             finish();
@@ -83,8 +84,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (musicinfo.issongopen)
                     onBackPressed();
-                else
+                else{
+                    loading.Loading();
                     musicinfo.navigation(MainActivity.this, 3, pref);
+
+                }
             }
         });
         tomusic.setOnClickListener(new View.OnClickListener() {
@@ -120,9 +124,11 @@ public class MainActivity extends AppCompatActivity {
                     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);// Check for the freshest data.
             //noinspection WrongConstant
             this.getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
-            finish();
 
             loading.dismiss();
+            finish();
+
+
         }
 
 
