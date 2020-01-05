@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.provider.DocumentFile;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -47,6 +48,10 @@ public class Albums extends AppCompatActivity {
         pref = this.getSharedPreferences("MyPref", 0);
 
         tonowplaying.setOnClickListener(new View.OnClickListener() {
+
+             Handler handler = new Handler();
+
+
             @Override
             public void onClick(View v) {
                 if (musicinfo.issongopen)
@@ -56,6 +61,13 @@ public class Albums extends AppCompatActivity {
                     musicinfo.navigation(Albums.this, 3, pref);
 
                 }
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        loading.dismiss();
+                    }
+                },100);
+
 
 
             }
@@ -65,6 +77,12 @@ public class Albums extends AppCompatActivity {
             public void onClick(View v) {
                 loading.Loading();
                 musicinfo.navigation(Albums.this, 1, pref);
+
+
+
+
+
+
             }
         });
 

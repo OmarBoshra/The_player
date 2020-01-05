@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -62,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
         final Button tomusic = findViewById(R.id.tomusic);
         Button tonowplaying = findViewById(R.id.toplayingsong);
 
+        final Handler handler = new Handler();
+
 
         pref = this.getSharedPreferences("MyPref", 0);
 
@@ -77,6 +80,13 @@ public class MainActivity extends AppCompatActivity {
                 loading.Loading();
                 musicinfo.navigation(MainActivity.this, 2, pref);
 
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        loading.dismiss();
+                    }
+                },100);
+
             }
         });
         tonowplaying.setOnClickListener(new View.OnClickListener() {
@@ -88,6 +98,13 @@ public class MainActivity extends AppCompatActivity {
                     loading.Loading();
                     musicinfo.navigation(MainActivity.this, 3, pref);
 
+
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            loading.dismiss();
+                        }
+                    },100);
                 }
             }
         });
@@ -97,6 +114,12 @@ public class MainActivity extends AppCompatActivity {
                 loading.Loading();
                 musicinfo.navigation(MainActivity.this, 1, pref);
 
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        loading.dismiss();
+                    }
+                },100);
 
             }
         });
@@ -124,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
             //noinspection WrongConstant
             this.getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
 
-            loading.dismiss();
             finish();
 
 

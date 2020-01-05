@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -41,12 +42,14 @@ public class music extends AppCompatActivity {
                 loading.Loading();
                 musicinfo.navigation(music.this, 2, pref);
 
+
             }
         });
 
         pref = this.getSharedPreferences("MyPref", 0);
 
         tonowplaying.setOnClickListener(new View.OnClickListener() {
+            Handler handler = new Handler();
             @Override
             public void onClick(View v) {
 
@@ -56,6 +59,12 @@ public class music extends AppCompatActivity {
                     loading.Loading();
                     musicinfo.navigation(music.this, 3, pref);
 
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            loading.dismiss();
+                        }
+                    },100);
                 }
             }
         });
