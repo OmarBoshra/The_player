@@ -18,6 +18,8 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
 
 public class MediaPlaybackService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     public static final String MPS_MESSAGE = "com.example.acer.musicalstructure.MediaPlaynackService.MESSAGE";
@@ -47,9 +49,14 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             }
         }
     };
+    private List<Uri> playingmsic;
 
     public void getTouchStatus(boolean seekBarTouch ){
         this.seekBarTouch=seekBarTouch;
+    }
+
+    public void setUris(List<Uri> playingmsic ){
+        this.playingmsic=playingmsic;
     }
 
 
@@ -145,7 +152,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     }
 
 
-void setcompletestarted(boolean completestarted){
+    public void setcompletestarted(boolean completestarted){
         this.completestarted=completestarted;
 }
     @Override
@@ -155,7 +162,6 @@ void setcompletestarted(boolean completestarted){
         mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-
 
                 return true;
             }
@@ -168,11 +174,11 @@ void setcompletestarted(boolean completestarted){
 
         case 1:
 
-    if (musicinfo.musicUris.size() > 1) {
-        if (position == musicinfo.musicUris.size() - 1)
+    if (playingmsic.size() > 1) {
+        if (position == playingmsic.size() - 1)
             position = 0;
 
-        file = musicinfo.musicUris.get(++position);
+        file = playingmsic.get(++position);
         init(file);
         play();
     }

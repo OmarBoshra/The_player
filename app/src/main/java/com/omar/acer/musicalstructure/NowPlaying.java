@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class NowPlaying extends AppCompatActivity {
 
@@ -55,6 +56,7 @@ public class NowPlaying extends AppCompatActivity {
     private TextView song;
     private ImageView iv;
 
+    private List<Uri> playingmsic;
 
     private dialog loading = new dialog(NowPlaying.this);
 
@@ -191,6 +193,8 @@ mediaPlaybackService.setPosition(position);
 
 
         }
+        playingmsic= musicinfo.musicUris;
+        mediaPlaybackService.setUris(playingmsic);
         return legitSongUri;
     }
 
@@ -439,18 +443,18 @@ if(!mediaPlaybackService.isPlaying()){
             intent(isnext);
         } else {
 
-            if (musicinfo.musicUris.size() > 1) {
+            if (playingmsic.size() > 1) {
                 Uri nextSongUri;
                 if (isnext) {
-                    if (position == musicinfo.musicUris.size() - 1)
+                    if (position == playingmsic.size() - 1)
                         position = 0;
 
-                    nextSongUri = musicinfo.musicUris.get(++position);
+                    nextSongUri = playingmsic.get(++position);
                 } else {
                     if (position == 0)
-                        position = musicinfo.musicUris.size() - 1;
+                        position = playingmsic.size() - 1;
 
-                    nextSongUri = musicinfo.musicUris.get(--position);
+                    nextSongUri = playingmsic.get(--position);
 
                 }
 if(!fromsettings) {
@@ -558,6 +562,7 @@ if(!fromsettings) {
 
                 if (getSongList(data.getData(), globalUri) == null) {
                     musicinfo.musicUris = new ArrayList<>();//remove uris
+                    playingmsic = new ArrayList<>();//remove uris
                     Toast.makeText(mediaPlaybackService, "Song isn't in this folder", Toast.LENGTH_LONG).show();
 //clear extra data
                     return;
