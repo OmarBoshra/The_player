@@ -30,7 +30,7 @@ Minimalist bottomline music player
 
 <img src="https://user-images.githubusercontent.com/47230931/71778555-32bdaa00-2fb8-11ea-924e-53ba528dd541.png" width="290" height="480" />
 
-
+App doesn't increase user storage.
 
 
 
