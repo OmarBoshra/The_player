@@ -32,5 +32,5 @@ Minimalist bottomline music player
 
 App doesn't increase user storage.
 
-
+Now on the google play store :- https://play.google.com/store/apps/details?id=com.omar.acer.musicalstructure
 
