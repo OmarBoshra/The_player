@@ -155,10 +155,12 @@ void setcompletestarted(boolean completestarted){
         mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
+
+
                 return true;
             }
         });
-        if(completestarted) {
+        if(completestarted&&!seekBarTouch) {
         SharedPreferences pref = this.getSharedPreferences("MyPref", 0);
 
     if(pref.contains("settings")) {
@@ -166,14 +168,14 @@ void setcompletestarted(boolean completestarted){
 
         case 1:
 
-                if (musicinfo.musicUris.size() > 1) {
-                        if (position == musicinfo.musicUris.size() - 1)
-                            position = 0;
+    if (musicinfo.musicUris.size() > 1) {
+        if (position == musicinfo.musicUris.size() - 1)
+            position = 0;
 
-                    file = musicinfo.musicUris.get(++position);
-                    init(file);
-                    play();
-                }
+        file = musicinfo.musicUris.get(++position);
+        init(file);
+        play();
+    }
 
 
             break;
@@ -184,7 +186,7 @@ void setcompletestarted(boolean completestarted){
             break;
         case 3:
 
-            if (!seekBarTouch)
+
                 stop();
 
             break;

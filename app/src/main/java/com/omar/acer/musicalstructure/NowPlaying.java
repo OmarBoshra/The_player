@@ -568,15 +568,21 @@ if(!fromsettings) {
 
                 }
 
-finish();
+                finish();
+
             }
+
+
+            if (requestCode ==3)
+                finish();
+
             musicinfo.setUris(this, data.getData(), pref, requestCode);
 
 
 
-            loading.dismiss();
 
-        }
+        }else
+            loading.dismiss();
     }
 
 

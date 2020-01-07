@@ -49,7 +49,6 @@ public class music extends AppCompatActivity {
         pref = this.getSharedPreferences("MyPref", 0);
 
         tonowplaying.setOnClickListener(new View.OnClickListener() {
-            Handler handler = new Handler();
             @Override
             public void onClick(View v) {
 
@@ -59,12 +58,6 @@ public class music extends AppCompatActivity {
                     loading.Loading();
                     musicinfo.navigation(music.this, 3, pref);
 
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            loading.dismiss();
-                        }
-                    },100);
                 }
             }
         });
@@ -156,7 +149,7 @@ public class music extends AppCompatActivity {
                 }
 
                 finish();
-
+                tosong.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(tosong);
             }
         });
@@ -185,10 +178,11 @@ public class music extends AppCompatActivity {
         if (data != null) {
             musicinfo.setUris(this, data.getData(), pref, requestCode);
             pref.edit().remove("favoritalbum").apply();
-            loading.dismiss();
+
             finish();
 
-        }
+        }else
+            loading.dismiss();
 
 
     }

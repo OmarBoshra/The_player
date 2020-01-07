@@ -63,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
         final Button tomusic = findViewById(R.id.tomusic);
         Button tonowplaying = findViewById(R.id.toplayingsong);
 
-        final Handler handler = new Handler();
 
 
         pref = this.getSharedPreferences("MyPref", 0);
@@ -80,12 +79,6 @@ public class MainActivity extends AppCompatActivity {
                 loading.Loading();
                 musicinfo.navigation(MainActivity.this, 2, pref);
 
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        loading.dismiss();
-                    }
-                },100);
 
             }
         });
@@ -99,12 +92,7 @@ public class MainActivity extends AppCompatActivity {
                     musicinfo.navigation(MainActivity.this, 3, pref);
 
 
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            loading.dismiss();
-                        }
-                    },100);
+
                 }
             }
         });
@@ -114,12 +102,6 @@ public class MainActivity extends AppCompatActivity {
                 loading.Loading();
                 musicinfo.navigation(MainActivity.this, 1, pref);
 
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        loading.dismiss();
-                    }
-                },100);
 
             }
         });
@@ -150,7 +132,8 @@ public class MainActivity extends AppCompatActivity {
             finish();
 
 
-        }
+        }else
+            loading.dismiss();
 
 
     }

@@ -49,7 +49,6 @@ public class Albums extends AppCompatActivity {
 
         tonowplaying.setOnClickListener(new View.OnClickListener() {
 
-             Handler handler = new Handler();
 
 
             @Override
@@ -61,14 +60,6 @@ public class Albums extends AppCompatActivity {
                     musicinfo.navigation(Albums.this, 3, pref);
 
                 }
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        loading.dismiss();
-                    }
-                },100);
-
-
 
             }
         });
@@ -77,10 +68,6 @@ public class Albums extends AppCompatActivity {
             public void onClick(View v) {
                 loading.Loading();
                 musicinfo.navigation(Albums.this, 1, pref);
-
-
-
-
 
 
             }
@@ -143,8 +130,8 @@ public class Albums extends AppCompatActivity {
             musicinfo.setUris(this, data.getData(), pref, requestCode);
 
             finish();
+        }else
             loading.dismiss();
-        }
 
 
     }
