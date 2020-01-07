@@ -94,6 +94,7 @@ public class NowPlaying extends AppCompatActivity {
 
             Uri songUri = getIntent().getParcelableExtra("songUri");
 
+            mediaPlaybackService.setcompletestarted(false);
             mediaPlaybackService.init(songUri);
             mediaPlaybackService.play();
 
