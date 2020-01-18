@@ -31,6 +31,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     MediaPlayer mMediaPlayer = null;
     Uri file;
     int position;
+    boolean didStop=false;
     IDBinder idBinder = new IDBinder();
     LocalBroadcastManager broadcastManager;
 
@@ -85,9 +86,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     }
 
 
-  public void setPosition(int position){
-      this.position = position;
-  }
+    public void setPosition(int position){
+        this.position = position;
+    }
 
     public void init(Uri file) {
         this.file = file;
@@ -139,7 +140,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
     public void seekTo(@NonNull int msec) {
         if(mMediaPlayer!=null)
-        mMediaPlayer.seekTo(msec);
+            mMediaPlayer.seekTo(msec);
 
     }
 
@@ -154,7 +155,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
     public void setcompletestarted(boolean completestarted){
         this.completestarted=completestarted;
-}
+    }
     @Override
     public void onCompletion(MediaPlayer mp) {
         // Utilisation du BroadcastReceiver local pour indiquer à l'activité que la lecture est terminée
@@ -167,39 +168,39 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             }
         });
         if(completestarted&&!seekBarTouch) {
-        SharedPreferences pref = this.getSharedPreferences("MyPref", 0);
+            SharedPreferences pref = this.getSharedPreferences("MyPref", 0);
 
-    if(pref.contains("settings")) {
-    switch (pref.getInt("settings", 0)){
+            if(pref.contains("settings")) {
+                switch (pref.getInt("settings", 0)){
 
-        case 1:
+                    case 1:
 
-    if (playingmsic.size() > 1) {
-        if (position == playingmsic.size() - 1)
-            position = 0;
+                        if (playingmsic!=null&&playingmsic.size() > 1) {
+                            if (position == playingmsic.size() - 1)
+                                position = 0;
 
-        file = playingmsic.get(++position);
-        init(file);
-        play();
-    }
-
-
-            break;
-        case 2:
-            init(file);
-            play();
-
-            break;
-        case 3:
+                            file = playingmsic.get(++position);
+                            init(file);
+                            play();
+                        }
 
 
-                stop();
+                        break;
+                    case 2:
+                        init(file);
+                        play();
 
-            break;
+                        break;
+                    case 3:
 
-    }
-    completestarted = false;
-}
+
+                        stop();
+                        didStop=true;
+                        break;
+
+                }
+                completestarted = false;
+            }
         }else
             completestarted=true;
 

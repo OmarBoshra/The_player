@@ -113,7 +113,7 @@ public class NowPlaying extends AppCompatActivity {
             globalUri = songUri;
 
             position = getIntent().getIntExtra("urlposition", 0);
-mediaPlaybackService.setPosition(position);
+            mediaPlaybackService.setPosition(position);
 
             loading.dismiss();
         } else {
@@ -121,50 +121,50 @@ mediaPlaybackService.setPosition(position);
 
 
 
-                musicinfo.musicUris = new ArrayList<>();//remove uris
+            musicinfo.musicUris = new ArrayList<>();//remove uris
 
-                Uri songUri = Uri.parse(pref.getString("gotsong", null));
-
-
-                Uri legitSongUri = null;
-
-                if (pref.contains("gotparentSongFolderUri")) {
+            Uri songUri = Uri.parse(pref.getString("gotsong", null));
 
 
-                    Uri parentfolderUri = Uri.parse(pref.getString("gotparentSongFolderUri", null));
+            Uri legitSongUri = null;
+
+            if (pref.contains("gotparentSongFolderUri")) {
 
 
-                    legitSongUri = getSongList(parentfolderUri, songUri);
+                Uri parentfolderUri = Uri.parse(pref.getString("gotparentSongFolderUri", null));
 
 
-                } else {
-                    isSingle = true;
-                    legitSongUri = songUri;
-                }
-                if (getIntent().getExtras() != null && getIntent().getExtras().containsKey("next"))
-                    nextOrprev(getIntent().getBooleanExtra("next", false), false);
-                else if (legitSongUri != null) {
-
-                    mediaPlaybackService.init(legitSongUri);
-                    mediaPlaybackService.play();
-
-                    globalUri = legitSongUri;
-
-                    song.setText(pref.getString("gotsongname", null));
-                    album.setText(pref.getString("gotsongalbum", null));
+                legitSongUri = getSongList(parentfolderUri, songUri);
 
 
-                    byte[] imageAsBytes = Base64.decode(pref.getString("gotsongimage", null).getBytes(), Base64.DEFAULT);
-                    iv.setImageBitmap(BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.length));
+            } else {
+                isSingle = true;
+                legitSongUri = songUri;
+            }
+            if (getIntent().getExtras() != null && getIntent().getExtras().containsKey("next"))
+                nextOrprev(getIntent().getBooleanExtra("next", false), false);
+            else if (legitSongUri != null) {
 
-                    duration = (pref.getInt("gotsongduration", 0));
-                    durationTextView.setText(secondsToString(duration));
-                    elapsedTimeSeekBar.setMax(duration);
+                mediaPlaybackService.init(legitSongUri);
+                mediaPlaybackService.play();
+
+                globalUri = legitSongUri;
+
+                song.setText(pref.getString("gotsongname", null));
+                album.setText(pref.getString("gotsongalbum", null));
 
 
-                    loading.dismiss();
-                } else
-                    Toast.makeText(mediaPlaybackService, "No song playing", Toast.LENGTH_SHORT).show();
+                byte[] imageAsBytes = Base64.decode(pref.getString("gotsongimage", null).getBytes(), Base64.DEFAULT);
+                iv.setImageBitmap(BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.length));
+
+                duration = (pref.getInt("gotsongduration", 0));
+                durationTextView.setText(secondsToString(duration));
+                elapsedTimeSeekBar.setMax(duration);
+
+
+                loading.dismiss();
+            } else
+                Toast.makeText(mediaPlaybackService, "No song playing", Toast.LENGTH_SHORT).show();
 
         }
 
@@ -233,14 +233,18 @@ mediaPlaybackService.setPosition(position);
                             nextOrprev(true, true);
                             break;
                         case 2:
-                            elapsedTimeSeekBar.animate().alpha(0.1f).setDuration(800).start();
 
-                            play_pause.setImageDrawable(getResources().getDrawable(R.drawable.play));
-break;
-                        case 3:
                             if (!seekBarTouch) {
                                 play_pause.setImageDrawable(getResources().getDrawable(R.drawable.play));
                             }
+
+
+                            break;
+                        case 3:
+                            elapsedTimeSeekBar.animate().alpha(0.1f).setDuration(800).start();
+
+                            play_pause.setImageDrawable(getResources().getDrawable(R.drawable.play));
+                            mediaPlaybackService.didStop=false;
                             break;
 
 
@@ -275,7 +279,7 @@ break;
                 if (event.getAction() == MotionEvent.ACTION_MOVE) {
                     // Construct a rect of the view's bounds
                     seekBarTouch = true;
-mediaPlaybackService.getTouchStatus(seekBarTouch);
+                    mediaPlaybackService.getTouchStatus(seekBarTouch);
 
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     seekBarTouch = false;
@@ -302,14 +306,14 @@ mediaPlaybackService.getTouchStatus(seekBarTouch);
             }
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-if(!mediaPlaybackService.isPlaying()){
-    mediaPlaybackService.seekTo(seekBar.getProgress());
-    mediaPlaybackService.play();
-    play_pause.setImageDrawable(getResources().getDrawable(R.drawable.pause));
+                if(!mediaPlaybackService.isPlaying()){
+                    mediaPlaybackService.seekTo(seekBar.getProgress());
+                    mediaPlaybackService.play();
+                    play_pause.setImageDrawable(getResources().getDrawable(R.drawable.pause));
 
-}else
+                }else
 
-                mediaPlaybackService.seekTo(seekBar.getProgress());
+                    mediaPlaybackService.seekTo(seekBar.getProgress());
             }
         });
 
@@ -323,7 +327,7 @@ if(!mediaPlaybackService.isPlaying()){
         Button gomusic = findViewById(R.id.tomusic);
         Button toalbum = findViewById(R.id.toalbums);
 
-       final Handler handler = new Handler();
+        final Handler handler = new Handler();
 
         tohome.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -458,11 +462,13 @@ if(!mediaPlaybackService.isPlaying()){
                     nextSongUri = playingmsic.get(--position);
 
                 }
-if(!fromsettings) {
-    mediaPlaybackService.setcompletestarted(false);
-    mediaPlaybackService.init(nextSongUri);
-    mediaPlaybackService.play();
-}
+                mediaPlaybackService.setPosition(position);//send to the service
+
+                if(!fromsettings) {
+                    mediaPlaybackService.setcompletestarted(false);
+                    mediaPlaybackService.init(nextSongUri);
+                    mediaPlaybackService.play();
+                }
                 song.setText(musicinfo.getMusicNames(NowPlaying.this, Arrays.asList(nextSongUri)).get(0));
                 album.setText(musicinfo.getAlbumNames(NowPlaying.this, Arrays.asList(nextSongUri)).get(0));
                 iv.setImageBitmap(musicinfo.getImages(NowPlaying.this, Arrays.asList(nextSongUri)).get(0));
@@ -492,6 +498,9 @@ if(!fromsettings) {
         if(mediaPlaybackService!=null&&mediaPlaybackService.getFile()!=null) {
 
 
+            position= mediaPlaybackService.position;//got the position from the playlist after user left app
+
+
             globalUri = mediaPlaybackService.getFile();
 
             song.setText(musicinfo.getMusicNames(NowPlaying.this, Arrays.asList(globalUri)).get(0));
@@ -500,17 +509,22 @@ if(!fromsettings) {
 
             play_pause.setImageDrawable(getResources().getDrawable(R.drawable.pause));
 
-            durationTextView.setText(secondsToString(duration = musicinfo.getDuration(NowPlaying.this, globalUri)));
+            durationTextView .setText(secondsToString(duration = musicinfo.getDuration(NowPlaying.this, globalUri)));
 
             elapsedTimeSeekBar.setProgress(0);
 
             elapsedTimeSeekBar.setMax(duration);
 
+
+            if(mediaPlaybackService.didStop){//when playing stops
+                elapsedTimeSeekBar.animate().alpha(0.1f).setDuration(800).start();
+                play_pause.setImageDrawable(getResources().getDrawable(R.drawable.play));
+                mediaPlaybackService.didStop=false;
+            }
         }
 
 
-
-            getApplicationContext().bindService(new Intent(getApplicationContext(),
+        getApplicationContext().bindService(new Intent(getApplicationContext(),
                 MediaPlaybackService.class), connection, BIND_AUTO_CREATE);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(receiverElapsedTime,

@@ -176,8 +176,9 @@ public class music extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (data != null) {
-            musicinfo.setUris(this, data.getData(), pref, requestCode);
             pref.edit().remove("favoritalbum").apply();
+
+            musicinfo.setUris(this, data.getData(), pref, requestCode);
 
             finish();
 

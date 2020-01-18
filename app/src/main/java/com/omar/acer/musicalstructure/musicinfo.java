@@ -168,7 +168,7 @@ public class musicinfo {
         }
     }
 
-    static void setUris(Context context, Uri uri, SharedPreferences pref, int requestCode) {
+    static void setUris(final Context context, Uri uri, SharedPreferences pref, int requestCode) {
 
 
         switch (requestCode) {
@@ -237,7 +237,6 @@ public class musicinfo {
     static void navigation(Activity activity, int requestcode, SharedPreferences pref) {
 
         switch (requestcode) {
-
 
             case 3:
 
@@ -310,7 +309,11 @@ return;
     }
 
 
-    static List<Uri> getFiles(DocumentFile df, int requestcode, Context context, String albumname) {
+    static List<Uri> getFiles(final DocumentFile df,final int requestcode,final Context context,final String albumname) {
+
+
+
+
         List<Uri> fileUris = new ArrayList<>();
         boolean gotmp3 = false;
         DocumentFile[] files = df.listFiles();
@@ -356,6 +359,8 @@ return;
             return fileUris;
         else
             return null;
+
+
     }
 
 }
