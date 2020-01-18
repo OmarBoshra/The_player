@@ -450,24 +450,30 @@ public class NowPlaying extends AppCompatActivity {
 
             if (playingmsic.size() > 1) {
 
-                if(mediaPlaybackService.position>-1)//got the position from the playlist after user left app
-                    position=mediaPlaybackService.position;
-                            Uri nextSongUri;
-                if (isnext) {
-                    if (position == playingmsic.size() - 1)
-                        position = 0;
+                Uri nextSongUri = null;
 
-                    nextSongUri = playingmsic.get(++position);
-                } else {
-                    if (position == 0)
-                        position = playingmsic.size() - 1;
-
-                    nextSongUri = playingmsic.get(--position);
+            if(fromsettings) {
+                if (mediaPlaybackService.position > 0) {//got the position from the playlist after user left app
+                    position = mediaPlaybackService.position;
+                    nextSongUri = playingmsic.get(position);
 
                 }
-                mediaPlaybackService.setPosition(position);//send to the service
+            }else{
+                    if (isnext) {
+                        if (position == playingmsic.size() - 1)
+                            position = 0;
 
-                if(!fromsettings) {
+                        nextSongUri = playingmsic.get(++position);
+                    } else {
+                        if (position == 0)
+                            position = playingmsic.size() - 1;
+
+                        nextSongUri = playingmsic.get(--position);
+
+                    }
+                    mediaPlaybackService.setPosition(position);//send to the service
+
+
                     mediaPlaybackService.setcompletestarted(false);
                     mediaPlaybackService.init(nextSongUri);
                     mediaPlaybackService.play();
