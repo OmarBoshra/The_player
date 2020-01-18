@@ -30,7 +30,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     boolean completestarted=false;
     MediaPlayer mMediaPlayer = null;
     Uri file;
-    int position;
+    int position=-1;
     boolean didStop=false;
     IDBinder idBinder = new IDBinder();
     LocalBroadcastManager broadcastManager;

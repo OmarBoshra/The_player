@@ -449,7 +449,10 @@ public class NowPlaying extends AppCompatActivity {
         } else {
 
             if (playingmsic.size() > 1) {
-                Uri nextSongUri;
+
+                if(mediaPlaybackService.position>-1)//got the position from the playlist after user left app
+                    position=mediaPlaybackService.position;
+                            Uri nextSongUri;
                 if (isnext) {
                     if (position == playingmsic.size() - 1)
                         position = 0;
@@ -497,8 +500,8 @@ public class NowPlaying extends AppCompatActivity {
 
         if(mediaPlaybackService!=null&&mediaPlaybackService.getFile()!=null) {
 
-
-            position= mediaPlaybackService.position;//got the position from the playlist after user left app
+            if(mediaPlaybackService.position>-1)//got the position from the playlist after user left app
+                position=mediaPlaybackService.position;
 
 
             globalUri = mediaPlaybackService.getFile();
