@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.provider.DocumentFile;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -127,7 +126,7 @@ public class Albums extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (data != null) {
-            musicinfo.setUris(this, data.getData(), pref, requestCode);
+            musicinfo.getUris(this, data.getData(), pref, requestCode);
 
             finish();
         }else

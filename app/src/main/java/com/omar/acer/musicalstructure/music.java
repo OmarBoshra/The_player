@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -74,7 +73,7 @@ public class music extends AppCompatActivity {
 
 
         if (getIntent().getExtras() != null) {// in case of albums
-            if (getIntent().getExtras().containsKey("almumname")) {//c
+            if (getIntent().getExtras().containsKey("almumname")) {//coming rom albums
 
                 final ImageButton favoritAlbum = findViewById(R.id.favalbum);
 
@@ -178,7 +177,7 @@ public class music extends AppCompatActivity {
         if (data != null) {
             pref.edit().remove("favoritalbum").apply();
 
-            musicinfo.setUris(this, data.getData(), pref, requestCode);
+            musicinfo.getUris(this, data.getData(), pref, requestCode);
 
             finish();
 

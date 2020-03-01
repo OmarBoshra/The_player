@@ -168,7 +168,7 @@ public class musicinfo {
         }
     }
 
-    static void setUris(final Context context, Uri uri, SharedPreferences pref, int requestCode) {
+    static void getUris(final Context context, Uri uri, SharedPreferences pref, int requestCode) {
 
 
         switch (requestCode) {
@@ -263,11 +263,11 @@ public class musicinfo {
             case 2:
 
                 if (pref.contains("gotAlbums")) {
-                    setUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 2);
+                    getUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 2);
                 } else if (pref.contains("gotmusic"))
-                    setUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 2);
+                    getUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 2);
                 else if (pref.contains("gotparentSongFolderUri"))
-                    setUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 2);
+                    getUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 2);
 
 
                 else {
@@ -284,11 +284,11 @@ return;
             case 1:
 
                 if (pref.contains("gotmusic")) {
-                    setUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 1);
+                    getUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 1);
                 } else if (pref.contains("gotAlbums"))
-                    setUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 1);
+                    getUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 1);
                 else if (pref.contains("gotparentSongFolderUri"))
-                    setUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 1);
+                    getUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 1);
 
                 else {
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);

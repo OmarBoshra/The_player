@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -67,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
         pref = this.getSharedPreferences("MyPref", 0);
 
-
+//to go to the fav music by default
         if (getIntent().getAction()!=null&&pref.contains("favorite") && pref.getInt("favorite", 0) == 1) {
 
             musicinfo.intents(this, 3);
@@ -120,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (data != null) {
-            musicinfo.setUris(this, data.getData(), pref, requestCode);
+            musicinfo.getUris(this, data.getData(), pref, requestCode);
 
             this.grantUriPermission(this.getPackageName(), data.getData(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
             final int takeFlags = data.getFlags()
@@ -188,7 +187,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        view.animate().alpha(0.9f).setDuration(200).start();final Dialog d = new Dialog(this);
+        view.animate().alpha(0.9f).setDuration(200).start();
+        final Dialog d = new Dialog(this);
         d.setContentView(R.layout.dialogue);
         Button ok = d.findViewById(R.id.ok);
         TextView tv = d.findViewById(R.id.textView);

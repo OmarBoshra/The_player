@@ -56,7 +56,7 @@ public class NowPlaying extends AppCompatActivity {
     private TextView song;
     private ImageView iv;
 
-    private List<Uri> playingmsic;
+    private List<Uri> playingMusicList;
 
     private dialog loading = new dialog(NowPlaying.this);
 
@@ -89,7 +89,7 @@ public class NowPlaying extends AppCompatActivity {
         song = findViewById(R.id.songname);
         album = findViewById(R.id.albumname);
 
-        if (getIntent().getExtras() != null && getIntent().getExtras().containsKey("songname")) {
+        if (getIntent().getExtras() != null && getIntent().getExtras().containsKey("songname")) {//coming from playlist
 
 
             Uri songUri = getIntent().getParcelableExtra("songUri");
@@ -114,6 +114,11 @@ public class NowPlaying extends AppCompatActivity {
 
             position = getIntent().getIntExtra("urlposition", 0);
             mediaPlaybackService.setPosition(position);
+
+            playingMusicList = musicinfo.musicUris;
+
+            musicinfo.musicUris = new ArrayList<>();//remove uris
+
 
             loading.dismiss();
         } else {
@@ -184,7 +189,7 @@ public class NowPlaying extends AppCompatActivity {
 
                 musicinfo.musicUris.add(file.getUri());
 
-                if (musicinfo.getMusicNames(NowPlaying.this, Arrays.asList(file.getUri())).get(0).equals(musicinfo.getMusicNames(NowPlaying.this, Arrays.asList(songUri)).get(0))) {
+            if (musicinfo.getMusicNames(NowPlaying.this, Arrays.asList(file.getUri())).get(0).equals(musicinfo.getMusicNames(NowPlaying.this, Arrays.asList(songUri)).get(0))) { //find the current song
                     legitSongUri = file.getUri();
                     position = musicinfo.musicUris.size() - 1;
                     mediaPlaybackService.setPosition(position);
@@ -194,8 +199,8 @@ public class NowPlaying extends AppCompatActivity {
 
 
         }
-        playingmsic= musicinfo.musicUris;
-        mediaPlaybackService.setUris(playingmsic);
+        playingMusicList = musicinfo.musicUris;
+        mediaPlaybackService.setUris(playingMusicList);
         return legitSongUri;
     }
 
@@ -448,27 +453,27 @@ public class NowPlaying extends AppCompatActivity {
             intent(isnext);
         } else {
 
-            if (playingmsic.size() > 1) {
+            if (playingMusicList.size() > 1) {
 
                 Uri nextSongUri = null;
 
             if(fromsettings) {
                 if (mediaPlaybackService.position > 0) {//got the position from the playlist after user left app
                     position = mediaPlaybackService.position;
-                    nextSongUri = playingmsic.get(position);
+                    nextSongUri = playingMusicList.get(position);
 
                 }
             }else{
                     if (isnext) {
-                        if (position == playingmsic.size() - 1)
+                        if (position == playingMusicList.size() - 1)
                             position = 0;
 
-                        nextSongUri = playingmsic.get(++position);
+                        nextSongUri = playingMusicList.get(++position);
                     } else {
                         if (position == 0)
-                            position = playingmsic.size() - 1;
+                            position = playingMusicList.size() - 1;
 
-                        nextSongUri = playingmsic.get(--position);
+                        nextSongUri = playingMusicList.get(--position);
 
                     }
                     mediaPlaybackService.setPosition(position);//send to the service
@@ -586,7 +591,7 @@ public class NowPlaying extends AppCompatActivity {
 
                 if (getSongList(data.getData(), globalUri) == null) {
                     musicinfo.musicUris = new ArrayList<>();//remove uris
-                    playingmsic = new ArrayList<>();//remove uris
+                    playingMusicList = new ArrayList<>();//remove uris
                     Toast.makeText(mediaPlaybackService, "Song isn't in this folder", Toast.LENGTH_LONG).show();
 //clear extra data
                     return;
@@ -605,7 +610,7 @@ public class NowPlaying extends AppCompatActivity {
             if (requestCode ==3)
                 finish();
 
-            musicinfo.setUris(this, data.getData(), pref, requestCode);
+            musicinfo.getUris(this, data.getData(), pref, requestCode);
 
 
 
