@@ -116,6 +116,7 @@ public class NowPlaying extends AppCompatActivity {
             mediaPlaybackService.setPosition(position);
 
             playingMusicList = musicinfo.musicUris;
+            mediaPlaybackService.setUris(playingMusicList);
 
             musicinfo.musicUris = new ArrayList<>();//remove uris
 
