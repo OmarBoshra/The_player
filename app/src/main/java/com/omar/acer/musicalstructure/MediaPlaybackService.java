@@ -1,41 +1,40 @@
 package com.omar.acer.musicalstructure;
 
-import android.app.Activity;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.BitSet;
 import java.util.List;
+
+import static com.omar.acer.musicalstructure.app.CHANNEL_ID;
 
 public class MediaPlaybackService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
     public static final String MPS_MESSAGE = "com.example.acer.musicalstructure.MediaPlaynackService.MESSAGE";
     public static final String MPS_RESULT = "com.example.acer.musicalstructure.MediaPlaynackService.RESULT";
     public static final String MPS_COMPLETED = "com.example.acer.musicalstructure.MediaPlaynackService.COMPLETED";
 
+    private static final int IDLE_DELAY = 5 * 60 * 1000;
 
-    boolean completestarted=false;
+    boolean completestarted = false;
     MediaPlayer mMediaPlayer = null;
     Uri file;
-    int position=-1;
-    boolean didStop=false;
-    IDBinder idBinder = new IDBinder();
+    int position = -1;
+    boolean didStop = false;
     LocalBroadcastManager broadcastManager;
 
-    boolean seekBarTouch =false;
+    boolean seekBarTouch = false;
 
     Runnable sendUpdates = new Runnable() {
         @Override
@@ -52,17 +51,33 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     };
     private List<Uri> playingmsic;
 
-    public void getTouchStatus(boolean seekBarTouch ){
-        this.seekBarTouch=seekBarTouch;
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        file = intent.getParcelableExtra("songUri");
+        init(file);
+        play();
+        startServiceWithNotification();
+
+        return START_NOT_STICKY;
     }
 
-    public void setUris(List<Uri> playingmsic ){
-        this.playingmsic=playingmsic;
+    public void getTouchStatus(boolean seekBarTouch) {
+        this.seekBarTouch = seekBarTouch;
+    }
+
+    public void setUris(List<Uri> playingmsic) {
+        this.playingmsic = playingmsic;
     }
 
 
     @Override
     public void onCreate() {
+
+        startServiceWithNotification();
+
+
         broadcastManager = LocalBroadcastManager.getInstance(this);
         super.onCreate();
     }
@@ -75,18 +90,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
     @Override
     public IBinder onBind(Intent intent) {
-        return idBinder;
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        // Si le service est débinder, arrêter la lecture
-        stop();
-        return super.onUnbind(intent);
+        return null;
     }
 
 
-    public void setPosition(int position){
+    public void setPosition(int position) {
         this.position = position;
     }
 
@@ -102,10 +110,36 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnCompletionListener(this);
             mMediaPlayer.prepareAsync(); // prepare async to not block main thread
+
         } catch (IOException e) {
             e.printStackTrace();
             stop();
         }
+    }
+
+    void startServiceWithNotification() {
+
+// TO OPEN ACTIVITY FROM THE NOTIFICATION
+        Intent notificationIntent = new Intent(getApplicationContext(), NowPlaying.class);
+        notificationIntent.setAction("start");  // A string containing the action name
+
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent contentPendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.play);
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(getResources().getString(R.string.app_name))
+                .setTicker(getResources().getString(R.string.app_name))
+                .setContentText(getResources().getString(R.string.albums))
+                .setSmallIcon(R.drawable.play)
+                .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
+                .setContentIntent(contentPendingIntent)
+                .setOngoing(true)
+//                .setDeleteIntent(contentPendingIntent)  // if needed
+                .build();
+        notification.flags = notification.flags | Notification.FLAG_NO_CLEAR;     // NO_CLEAR makes the notification stay when the user performs a "delete all" command
+        startForeground(1, notification);
     }
 
     @Override
@@ -124,12 +158,17 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     }
 
     public void play() {
-        if (mMediaPlayer != null)
+        if (mMediaPlayer != null) {
+
             mMediaPlayer.start();
+
+        }
     }
 
     public void stop() {
         if (mMediaPlayer != null) {
+
+
             mMediaPlayer.stop();
             mMediaPlayer.release();
 
@@ -139,7 +178,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     }
 
     public void seekTo(@NonNull int msec) {
-        if(mMediaPlayer!=null)
+        if (mMediaPlayer != null)
             mMediaPlayer.seekTo(msec);
 
     }
@@ -153,9 +192,10 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     }
 
 
-    public void setcompletestarted(boolean completestarted){
-        this.completestarted=completestarted;
+    public void setcompletestarted(boolean completestarted) {
+        this.completestarted = completestarted;
     }
+
     @Override
     public void onCompletion(MediaPlayer mp) {
         // Utilisation du BroadcastReceiver local pour indiquer à l'activité que la lecture est terminée
@@ -167,15 +207,16 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
                 return true;
             }
         });
-        if(completestarted&&!seekBarTouch) {
+
+        if (completestarted && !seekBarTouch) {
             SharedPreferences pref = this.getSharedPreferences("MyPref", 0);
 
-            if(pref.contains("settings")) {
-                switch (pref.getInt("settings", 0)){
+            if (pref.contains("settings")) {
+                switch (pref.getInt("settings", 0)) {
 
                     case 1:
 
-                        if (playingmsic!=null&&playingmsic.size() > 1) {
+                        if (playingmsic != null && playingmsic.size() > 1) {
                             if (position == playingmsic.size() - 1)
                                 position = 0;
 
@@ -195,17 +236,17 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
 
                         stop();
-                        didStop=true;
+                        didStop = true;
                         break;
 
                 }
                 completestarted = false;
             }
-        }else
-            completestarted=true;
+        } else
+            completestarted = true;
 
         Intent intent = new Intent(MPS_COMPLETED);
-        intent.putExtra("completed",completestarted);
+        intent.putExtra("completed", completestarted);
         broadcastManager.sendBroadcast(intent);
     }
 
@@ -221,11 +262,5 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             }
     }
 
-    public class IDBinder extends Binder {
-
-        MediaPlaybackService getService() {
-            return MediaPlaybackService.this;
-        }
-    }
 
 }

@@ -9,8 +9,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-
-
+        android:name=".app"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -41,7 +40,9 @@
         </intent-filter>
         </activity>
 
-        <service  android:enabled="true" android:name="com.omar.acer.musicalstructure.MediaPlaybackService" />
+        <service
+            android:name="com.omar.acer.musicalstructure.MediaPlaybackService"
+            />
 
     </application>
 

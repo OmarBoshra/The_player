@@ -1,5 +1,7 @@
 package com.omar.acer.musicalstructure;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -7,11 +9,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.provider.DocumentFile;
 import android.support.v7.app.AppCompatActivity;
@@ -32,13 +35,13 @@ import java.util.List;
 
 public class NowPlaying extends AppCompatActivity {
 
-    private SharedPreferences pref;
+
+private SharedPreferences pref;
 
     private String treeUri;
 
     private boolean seekBarTouch = false;
 
-    private MediaPlaybackService mediaPlaybackService;
     private int currentUrlPosition = 0;
 
     private BroadcastReceiver receiverElapsedTime;
@@ -67,21 +70,9 @@ public class NowPlaying extends AppCompatActivity {
 
     private DocumentFile musicfile;
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mediaPlaybackService = ((MediaPlaybackService.IDBinder) service).getService();
 
-            showMusic();
-
-
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-        }
-    };
     private int pauseorplay = 0;
+
 
     private void showMusic() {
 
@@ -89,14 +80,20 @@ public class NowPlaying extends AppCompatActivity {
         song = findViewById(R.id.songname);
         album = findViewById(R.id.albumname);
 
+        musicinfo.albumUris = null;//remove extra album uris
+
+
+
         if (getIntent().getExtras() != null && getIntent().getExtras().containsKey("songname")) {//coming from playlist
 
-
+//todo for playlist
             Uri songUri = getIntent().getParcelableExtra("songUri");
+/*
 
             mediaPlaybackService.setcompletestarted(false);
             mediaPlaybackService.init(songUri);
             mediaPlaybackService.play();
+*/
 
             song.setText(getIntent().getStringExtra("songname"));
             album.setText(getIntent().getStringExtra("albumname"));
@@ -113,18 +110,20 @@ public class NowPlaying extends AppCompatActivity {
             globalUri = songUri;
 
             position = getIntent().getIntExtra("urlposition", 0);
+/*
             mediaPlaybackService.setPosition(position);
+*/
 
             playingMusicList = musicinfo.musicUris;
+/*
             mediaPlaybackService.setUris(playingMusicList);
+*/
 
             musicinfo.musicUris = new ArrayList<>();//remove uris
 
 
             loading.dismiss();
         } else {
-
-
 
 
             musicinfo.musicUris = new ArrayList<>();//remove uris
@@ -151,8 +150,17 @@ public class NowPlaying extends AppCompatActivity {
                 nextOrprev(getIntent().getBooleanExtra("next", false), false);
             else if (legitSongUri != null) {
 
+
+                Intent startIntent = new Intent(getApplicationContext(), MediaPlaybackService.class);
+                startIntent.setAction("start");
+                startIntent.putExtra("uri",legitSongUri);
+                startService(startIntent);
+
+
+/*
                 mediaPlaybackService.init(legitSongUri);
-                mediaPlaybackService.play();
+                mediaPlaybackService.play();*/
+//todo
 
                 globalUri = legitSongUri;
 
@@ -169,8 +177,8 @@ public class NowPlaying extends AppCompatActivity {
 
 
                 loading.dismiss();
-            } else
-                Toast.makeText(mediaPlaybackService, "No song playing", Toast.LENGTH_SHORT).show();
+            } /*else
+                Toast.makeText(mediaPlaybackService, "No song playing", Toast.LENGTH_SHORT).show();*///todo
 
         }
 
@@ -193,7 +201,9 @@ public class NowPlaying extends AppCompatActivity {
             if (musicinfo.getMusicNames(NowPlaying.this, Arrays.asList(file.getUri())).get(0).equals(musicinfo.getMusicNames(NowPlaying.this, Arrays.asList(songUri)).get(0))) { //find the current song
                     legitSongUri = file.getUri();
                     position = musicinfo.musicUris.size() - 1;
-                    mediaPlaybackService.setPosition(position);
+/*
+                   mediaPlaybackService.setPosition(position);
+*///todo
 
                 }
             }
@@ -201,7 +211,9 @@ public class NowPlaying extends AppCompatActivity {
 
         }
         playingMusicList = musicinfo.musicUris;
+/*
         mediaPlaybackService.setUris(playingMusicList);
+*///todo
         return legitSongUri;
     }
 
@@ -218,6 +230,11 @@ public class NowPlaying extends AppCompatActivity {
         loading.Loading();
 
         pref = this.getSharedPreferences("MyPref", 0);
+
+
+        showMusic();
+
+
 
 
         receiverElapsedTime = new BroadcastReceiver() {
@@ -241,7 +258,7 @@ public class NowPlaying extends AppCompatActivity {
                         case 2:
 
                             if (!seekBarTouch) {
-                                play_pause.setImageDrawable(getResources().getDrawable(R.drawable.play));
+                                play_pause.setImageDrawable(getResources().getDrawable(R.drawable.pause));
                             }
 
 
@@ -250,14 +267,14 @@ public class NowPlaying extends AppCompatActivity {
                             elapsedTimeSeekBar.animate().alpha(0.1f).setDuration(800).start();
 
                             play_pause.setImageDrawable(getResources().getDrawable(R.drawable.play));
+/*
                             mediaPlaybackService.didStop=false;
+*///todo
                             break;
 
 
                     }
                 }
-
-
 
             }
         };
@@ -281,15 +298,19 @@ public class NowPlaying extends AppCompatActivity {
         elapsedTimeSeekBar.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-
+//todo
                 if (event.getAction() == MotionEvent.ACTION_MOVE) {
                     // Construct a rect of the view's bounds
                     seekBarTouch = true;
+/*
                     mediaPlaybackService.getTouchStatus(seekBarTouch);
+*/
 
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     seekBarTouch = false;
+/*
                     mediaPlaybackService.getTouchStatus(seekBarTouch);
+*/
 
                 }
                 return false;
@@ -301,8 +322,8 @@ public class NowPlaying extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 
-                if (seekBarTouch)
-                    mediaPlaybackService.seekTo(seekBar.getProgress());
+                /*if (seekBarTouch)
+                    mediaPlaybackService.seekTo(seekBar.getProgress());*///todo
             }
 
             @Override
@@ -312,14 +333,15 @@ public class NowPlaying extends AppCompatActivity {
             }
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                if(!mediaPlaybackService.isPlaying()){
+            /*    if(!mediaPlaybackService.isPlaying()){
                     mediaPlaybackService.seekTo(seekBar.getProgress());
                     mediaPlaybackService.play();
                     play_pause.setImageDrawable(getResources().getDrawable(R.drawable.pause));
 
                 }else
 
-                    mediaPlaybackService.seekTo(seekBar.getProgress());
+                    mediaPlaybackService.seekTo(seekBar.getProgress());*/
+            //todo
             }
         });
 
@@ -392,13 +414,16 @@ public class NowPlaying extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                elapsedTimeSeekBar.setProgress(0);
+              /*  elapsedTimeSeekBar.setProgress(0);
                 mediaPlaybackService.stop();
                 elapsedTimeSeekBar.animate().alpha(0.1f).setDuration(800).start();
                 elapsedTimeTextView.setText("");
                 durationTextView.setText("");
                 play_pause.setImageDrawable(getResources().getDrawable(R.drawable.play));
                 pauseorplay = 1;
+
+                mediaPlaybackService.setcompletestarted(false);//to prevent going to next song*/
+              //todo
 
             }
         });
@@ -411,20 +436,24 @@ public class NowPlaying extends AppCompatActivity {
                     pauseorplay = 1;
 
 
+/*
                     mediaPlaybackService.pause();
+*///todo
 
                 } else {
 
-                    if (mediaPlaybackService.mMediaPlayer == null) {
+                  /*  if (mediaPlaybackService.mMediaPlayer == null) {
                         mediaPlaybackService.init(globalUri);
                         durationTextView.setText(secondsToString(duration));
 
                         elapsedTimeSeekBar.animate().alpha(1f).setDuration(800).start();
 
-                    }
+                    }*///todo
 
 
+/*
                     mediaPlaybackService.play();
+*///todo
                     play_pause.setImageDrawable(getResources().getDrawable(R.drawable.pause));
 
                     pauseorplay = 0;
@@ -445,7 +474,9 @@ public class NowPlaying extends AppCompatActivity {
         Intent folderIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         folderIntent.createChooser(folderIntent, "Choose The playlist folder");
         startActivityForResult(folderIntent, isnext ? 5 : 6);
+/*
         Toast.makeText(mediaPlaybackService, "Please confirm the playList location", Toast.LENGTH_LONG).show();
+*///todo
     }
 
     private void nextOrprev(boolean isnext,boolean fromsettings) {
@@ -458,12 +489,14 @@ public class NowPlaying extends AppCompatActivity {
 
                 Uri nextSongUri = null;
 
-            if(fromsettings) {
-                if (mediaPlaybackService.position > 0) {//got the position from the playlist after user left app
+            if(fromsettings) {//todo
+                /*if (mediaPlaybackService.position > 0) {//got the position from the playlist after user left app
+*//*
                     position = mediaPlaybackService.position;
+*//*
                     nextSongUri = playingMusicList.get(position);
 
-                }
+                }*/
             }else{
                     if (isnext) {
                         if (position == playingMusicList.size() - 1)
@@ -477,12 +510,13 @@ public class NowPlaying extends AppCompatActivity {
                         nextSongUri = playingMusicList.get(--position);
 
                     }
-                    mediaPlaybackService.setPosition(position);//send to the service
+                    //todo
+                  /*  mediaPlaybackService.setPosition(position);//send to the service
 
 
                     mediaPlaybackService.setcompletestarted(false);
                     mediaPlaybackService.init(nextSongUri);
-                    mediaPlaybackService.play();
+                    mediaPlaybackService.play();*/
                 }
                 song.setText(musicinfo.getMusicNames(NowPlaying.this, Arrays.asList(nextSongUri)).get(0));
                 album.setText(musicinfo.getAlbumNames(NowPlaying.this, Arrays.asList(nextSongUri)).get(0));
@@ -499,8 +533,9 @@ public class NowPlaying extends AppCompatActivity {
 
                 loading.dismiss();
 
-            } else
-                Toast.makeText(mediaPlaybackService, "Only 1 song in playlist", Toast.LENGTH_SHORT).show();
+            } /*else
+                Toast.makeText(mediaPlaybackService, "Only 1 song in playlist", Toast.LENGTH_SHORT).show();*/
+// TODO: 3/5/2020
         }
     }
 
@@ -510,7 +545,7 @@ public class NowPlaying extends AppCompatActivity {
 
         musicinfo.issongopen = true;
 
-        if(mediaPlaybackService!=null&&mediaPlaybackService.getFile()!=null) {
+/*        if(mediaPlaybackService!=null&&mediaPlaybackService.getFile()!=null) {
 
             if(mediaPlaybackService.position>-1)//got the position from the playlist after user left app
                 position=mediaPlaybackService.position;
@@ -531,16 +566,14 @@ public class NowPlaying extends AppCompatActivity {
             elapsedTimeSeekBar.setMax(duration);
 
 
-            if(mediaPlaybackService.didStop){//when playing stops
+        *//*    if(mediaPlaybackService.didStop){//when playing stops
                 elapsedTimeSeekBar.animate().alpha(0.1f).setDuration(800).start();
                 play_pause.setImageDrawable(getResources().getDrawable(R.drawable.play));
                 mediaPlaybackService.didStop=false;
-            }
-        }
+            }*//*// TODO: 3/5/2020
+        }*/
 
 
-        getApplicationContext().bindService(new Intent(getApplicationContext(),
-                MediaPlaybackService.class), connection, BIND_AUTO_CREATE);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(receiverElapsedTime,
                 new IntentFilter(MediaPlaybackService.MPS_RESULT)
@@ -556,14 +589,17 @@ public class NowPlaying extends AppCompatActivity {
     @Override
     protected void onPause() {
         // Désenregistrement des BroadcastReceiver à la mise en pause de l'activité
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverElapsedTime);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCompleted);
+
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
+//        mediaPlaybackService.stop();
+// TODO: 3/5/2020
         super.onDestroy();
+
+
     }
 
     private String secondsToString(int time) {
@@ -593,11 +629,15 @@ public class NowPlaying extends AppCompatActivity {
                 if (getSongList(data.getData(), globalUri) == null) {
                     musicinfo.musicUris = new ArrayList<>();//remove uris
                     playingMusicList = new ArrayList<>();//remove uris
+/*
                     Toast.makeText(mediaPlaybackService, "Song isn't in this folder", Toast.LENGTH_LONG).show();
-//clear extra data
+*/
+//clear extra data// TODO: 3/5/2020  erer
                     return;
                 } else {
+/* TODO: 3/5/2020  
                     mediaPlaybackService.stop();
+*/
 
                     pref.edit().putString("gotparentSongFolderUri", data.getData().toString()).apply();
 
