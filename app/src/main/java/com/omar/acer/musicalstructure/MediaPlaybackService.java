@@ -1,8 +1,8 @@
 package com.omar.acer.musicalstructure;
 
 import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -10,12 +10,15 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import static com.omar.acer.musicalstructure.app.CHANNEL_ID;
@@ -25,13 +28,16 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     public static final String MPS_RESULT = "com.example.acer.musicalstructure.MediaPlaynackService.RESULT";
     public static final String MPS_COMPLETED = "com.example.acer.musicalstructure.MediaPlaynackService.COMPLETED";
 
-    private static final int IDLE_DELAY = 5 * 60 * 1000;
+    private static final String SHUTDOWN = "com.naman14.timber.shutdown";
+
+    IDBinder idBinder = new IDBinder();
 
     boolean completestarted = false;
     MediaPlayer mMediaPlayer = null;
     Uri file;
     int position = -1;
     boolean didStop = false;
+    boolean didStart = false;
     LocalBroadcastManager broadcastManager;
 
     boolean seekBarTouch = false;
@@ -52,16 +58,27 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     private List<Uri> playingmsic;
 
 
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        file = intent.getParcelableExtra("songUri");
-        init(file);
-        play();
-        startServiceWithNotification();
+        if(didStart==false) {
+
+            didStart=true;
+
+
+        }
 
         return START_NOT_STICKY;
     }
+
+
+/*    public void onTaskRemoved(Intent intent){
+        super.onTaskRemoved(intent);
+        Intent intent=new Intent(this,this.getClass());
+        startService(intet);
+    }*/
+
 
     public void getTouchStatus(boolean seekBarTouch) {
         this.seekBarTouch = seekBarTouch;
@@ -75,22 +92,34 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     @Override
     public void onCreate() {
 
-        startServiceWithNotification();
+            startServiceWithNotification();
 
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
+        wakeLock.acquire();
 
-        broadcastManager = LocalBroadcastManager.getInstance(this);
-        super.onCreate();
+            broadcastManager = LocalBroadcastManager.getInstance(this);
+            super.onCreate();
+
     }
 
     @Override
     public void onDestroy() {
-        stop();
+//        stop();
         super.onDestroy();
     }
 
+
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return idBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        // Si le service est débinder, arrêter la lecture
+        stop();
+        return super.onUnbind(intent);
     }
 
 
@@ -120,12 +149,12 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     void startServiceWithNotification() {
 
 // TO OPEN ACTIVITY FROM THE NOTIFICATION
-        Intent notificationIntent = new Intent(getApplicationContext(), NowPlaying.class);
+     /*   Intent notificationIntent = new Intent(getApplicationContext(), NowPlaying.class);
         notificationIntent.setAction("start");  // A string containing the action name
 
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent contentPendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
+*/
         Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.play);
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
@@ -134,8 +163,6 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
                 .setContentText(getResources().getString(R.string.albums))
                 .setSmallIcon(R.drawable.play)
                 .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                .setContentIntent(contentPendingIntent)
-                .setOngoing(true)
 //                .setDeleteIntent(contentPendingIntent)  // if needed
                 .build();
         notification.flags = notification.flags | Notification.FLAG_NO_CLEAR;     // NO_CLEAR makes the notification stay when the user performs a "delete all" command
@@ -262,5 +289,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             }
     }
 
+    public class IDBinder extends Binder {
+
+        MediaPlaybackService getService() {
+            return MediaPlaybackService.this;
+        }
+    }
 
 }
