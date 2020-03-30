@@ -7,14 +7,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.webkit.PermissionRequest;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -22,81 +19,73 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private dialog loading = new dialog(MainActivity.this);
+    private final dialog loading = new dialog(this);
 
     SharedPreferences pref;
-    boolean isdialogopen = false;
-    private int settings = 0;
-    private int favoritmusic = 0;
+    boolean isdialogopen;
+    private int settings;
+    private int favoritmusic;
 
     private void permissions() {
-        List<String> listPermissionsNeeded = new ArrayList<>();
+        final List<String> listPermissionsNeeded = new ArrayList<>();
 
 
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
 
 
         }
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             listPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         }
-        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WAKE_LOCK) != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.WAKE_LOCK);
-
-        }
-
 
         if (!listPermissionsNeeded.isEmpty()) {
 
 
-            alertDialog();
+            this.alertDialog();
 
         }
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        this.setContentView(R.layout.activity_main);
 
-        Button toalbum = findViewById(R.id.toalbums);
-        final Button tomusic = findViewById(R.id.tomusic);
-        Button tonowplaying = findViewById(R.id.toplayingsong);
+        final Button toalbum = this.findViewById(R.id.toalbums);
+        Button tomusic = this.findViewById(R.id.tomusic);
+        final Button tonowplaying = this.findViewById(R.id.toplayingsong);
 
 
-
-        pref = this.getSharedPreferences("MyPref", 0);
+        this.pref = getSharedPreferences("MyPref", 0);
 
 //to go to the fav music by default
-        if (getIntent().getAction()!=null&&pref.contains("favorite") && pref.getInt("favorite", 0) == 1) {
+        if (this.getIntent().getAction()!=null&& this.pref.contains("favorite") && this.pref.getInt("favorite", 0) == 1) {
 
             musicinfo.intents(this, 3);
-            finish();
+            this.finish();
         }
         toalbum.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                loading.Loading();
-                musicinfo.navigation(MainActivity.this, 2, pref);
+            public void onClick(final View v) {
+                MainActivity.this.loading.Loading();
+                musicinfo.navigation(MainActivity.this, 2, MainActivity.this.pref);
 
 
             }
         });
         tonowplaying.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 if (musicinfo.issongopen)
-                    onBackPressed();
+                    MainActivity.this.onBackPressed();
                 else{
-                    loading.Loading();
-                    musicinfo.navigation(MainActivity.this, 3, pref);
+                    musicinfo.navigation(MainActivity.this, 3, MainActivity.this.pref);
 
 
 
@@ -105,9 +94,9 @@ public class MainActivity extends AppCompatActivity {
         });
         tomusic.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                loading.Loading();
-                musicinfo.navigation(MainActivity.this, 1, pref);
+            public void onClick(final View v) {
+                MainActivity.this.loading.Loading();
+                musicinfo.navigation(MainActivity.this, 1, MainActivity.this.pref);
 
 
             }
@@ -118,29 +107,29 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!isdialogopen)
-            permissions();
+        if (!this.isdialogopen)
+            this.permissions();
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
 
 
         if (data != null) {
-            musicinfo.getUris(this, data.getData(), pref, requestCode);
+            musicinfo.getUris(this, data.getData(), this.pref, requestCode);
 
-            this.grantUriPermission(this.getPackageName(), data.getData(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            final int takeFlags = data.getFlags()
+            grantUriPermission(getPackageName(), data.getData(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            int takeFlags = data.getFlags()
                     & (Intent.FLAG_GRANT_READ_URI_PERMISSION
                     | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);// Check for the freshest data.
             //noinspection WrongConstant
-            this.getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
+            getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
 
-            finish();
+            this.finish();
 
 
         }else
-            loading.dismiss();
+            this.loading.dismiss();
 
 
     }
@@ -150,11 +139,11 @@ public class MainActivity extends AppCompatActivity {
 
         final Dialog d = new Dialog(this);
         d.setContentView(R.layout.dialogue);
-        Button ok = d.findViewById(R.id.ok);
-        TextView tv = d.findViewById(R.id.textView);
+        final Button ok = d.findViewById(R.id.ok);
+        final TextView tv = d.findViewById(R.id.textView);
         tv.setText("App requires storage access permission");
 
-        LinearLayout checkboxes = d.findViewById(R.id.checkboxes);
+        final LinearLayout checkboxes = d.findViewById(R.id.checkboxes);
         checkboxes.setVisibility(View.GONE);
 
         d.setCancelable(false);
@@ -164,48 +153,48 @@ public class MainActivity extends AppCompatActivity {
 
         ok.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 Toast.makeText(MainActivity.this, "Click on permissions", Toast.LENGTH_SHORT).show();
-                openAppSettings();
+                MainActivity.this.openAppSettings();
                 d.dismiss();
             }
         });
 
         d.show();
 
-        isdialogopen = true;
+        this.isdialogopen = true;
     }
 
     private void openAppSettings() {
 
-        Uri packageUri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
+        final Uri packageUri = Uri.fromParts("package", this.getApplicationContext().getPackageName(), null);
 
-        Intent applicationDetailsSettingsIntent = new Intent();
+        final Intent applicationDetailsSettingsIntent = new Intent();
 
         applicationDetailsSettingsIntent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         applicationDetailsSettingsIntent.setData(packageUri);
         applicationDetailsSettingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        startActivity(applicationDetailsSettingsIntent);
+        this.startActivity(applicationDetailsSettingsIntent);
 
     }
 
 
-    public void settings(View view) {
+    public void settings(final View view) {
 
 
 
         view.animate().alpha(0.9f).setDuration(200).start();
         final Dialog d = new Dialog(this);
         d.setContentView(R.layout.dialogue);
-        Button ok = d.findViewById(R.id.ok);
-        TextView tv = d.findViewById(R.id.textView);
+        final Button ok = d.findViewById(R.id.ok);
+        final TextView tv = d.findViewById(R.id.textView);
         tv.setText("Settings");
 
         final CheckBox restart = d.findViewById(R.id.restart);
         final CheckBox next = d.findViewById(R.id.next);
         final CheckBox stopsong = d.findViewById(R.id.stopsong);
-        CheckBox songfav = d.findViewById(R.id.fav);
+        final CheckBox songfav = d.findViewById(R.id.fav);
 
 
         d.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
@@ -213,57 +202,57 @@ public class MainActivity extends AppCompatActivity {
 
         next.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
 
                 restart.setEnabled(false);
                 stopsong.setEnabled(false);
 
-                if (settings > 0) {
-                    settings = 0;
+                if (MainActivity.this.settings > 0) {
+                    MainActivity.this.settings = 0;
                     restart.setEnabled(true);
                     stopsong.setEnabled(true);
                 } else
-                    settings = 1;
+                    MainActivity.this.settings = 1;
             }
         });
 
         restart.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
 
                 next.setEnabled(false);
                 stopsong.setEnabled(false);
 
-                if (settings > 0) {
-                    settings = 0;
+                if (MainActivity.this.settings > 0) {
+                    MainActivity.this.settings = 0;
                     next.setEnabled(true);
                     stopsong.setEnabled(true);
                 } else
-                    settings = 2;
+                    MainActivity.this.settings = 2;
 
             }
         });
 
         stopsong.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
 
                 restart.setEnabled(false);
                 next.setEnabled(false);
 
-                if (settings > 0) {
-                    settings = 0;
+                if (MainActivity.this.settings > 0) {
+                    MainActivity.this.settings = 0;
                     restart.setEnabled(true);
                     next.setEnabled(true);
                 } else
-                    settings = 3;
+                    MainActivity.this.settings = 3;
 
             }
         });
 
-        if (pref.contains("settings")) {
+        if (this.pref.contains("settings")) {
 
-            switch (pref.getInt("settings", 0)) {
+            switch (this.pref.getInt("settings", 0)) {
 
                 case 1:
                     next.performClick();
@@ -283,30 +272,30 @@ public class MainActivity extends AppCompatActivity {
 
 
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
 
-                if (favoritmusic > 0) {
-                    favoritmusic = 0;
+                if (MainActivity.this.favoritmusic > 0) {
+                    MainActivity.this.favoritmusic = 0;
                 } else
-                    favoritmusic = 1;
+                    MainActivity.this.favoritmusic = 1;
 
             }
         });
 
-        if (pref.contains("favorite")) {
-            if (pref.getInt("favorite", 0) == 1)
+        if (this.pref.contains("favorite")) {
+            if (this.pref.getInt("favorite", 0) == 1)
                 songfav.performClick();
 
         }
 
         ok.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 Toast.makeText(MainActivity.this, "SAVED", Toast.LENGTH_SHORT).show();
-                pref.edit().putInt("settings", settings).apply();
-                pref.edit().putInt("favorite", favoritmusic).apply();
-                settings = 0;
-                favoritmusic = 0;
+                MainActivity.this.pref.edit().putInt("settings", MainActivity.this.settings).apply();
+                MainActivity.this.pref.edit().putInt("favorite", MainActivity.this.favoritmusic).apply();
+                MainActivity.this.settings = 0;
+                MainActivity.this.favoritmusic = 0;
 
                 d.dismiss();
             }
@@ -315,9 +304,9 @@ public class MainActivity extends AppCompatActivity {
 
         d.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
-            public void onCancel(DialogInterface dialog) {
-                settings = 0;
-                favoritmusic = 0;
+            public void onCancel(final DialogInterface dialog) {
+                MainActivity.this.settings = 0;
+                MainActivity.this.favoritmusic = 0;
 
             }
         });

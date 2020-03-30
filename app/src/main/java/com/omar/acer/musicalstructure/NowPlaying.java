@@ -1,8 +1,5 @@
 package com.omar.acer.musicalstructure;
 
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -10,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,7 +19,6 @@ import android.support.v7.widget.AppCompatSeekBar;
 import android.util.Base64;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -230,14 +225,11 @@ private SharedPreferences pref;
         loading.Loading();
 
 
-        Intent startIntent = new Intent(getApplicationContext(), MediaPlaybackService.class);
-        startIntent.setAction("start");
+        Intent startIntent = new Intent(getApplicationContext(), powerSupport.class);
         startService(startIntent);
-
 
         getApplicationContext().bindService(new Intent(getApplicationContext(),
                 MediaPlaybackService.class), connection, BIND_AUTO_CREATE);
-
 
         pref = this.getSharedPreferences("MyPref", 0);
 
@@ -278,6 +270,7 @@ private SharedPreferences pref;
 
                     }
                 }
+
 
             }
         };
@@ -475,10 +468,6 @@ private SharedPreferences pref;
     private void nextOrprev(boolean isnext,boolean fromsettings) {
 // FIXME: 3/5/2020 for testing
 
-       /* Intent stopIntent = new Intent(getApplicationContext(), MediaPlaybackService.class);
-        stopIntent.setAction("stop");
-        stopService(stopIntent);*/
-
 
 
         if (isSingle) {
@@ -542,6 +531,8 @@ private SharedPreferences pref;
 
     @Override
     protected void onResume() {
+
+        TextView title = findViewById(R.id.songplay);
 
         musicinfo.issongopen = true;
 

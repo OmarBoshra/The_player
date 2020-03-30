@@ -20,7 +20,7 @@ class Adapter extends BaseAdapter {
     private final int singleimage;
     private final String singlealbum;
 
-    public Adapter(List<String> music, List<Bitmap> rimg, int singleimage, String singlealbum, Context a, List<String> albums) {
+    public Adapter(final List<String> music, final List<Bitmap> rimg, final int singleimage, final String singlealbum, final Context a, final List<String> albums) {
         this.music = music;
         this.albums = albums;
         this.singlealbum = singlealbum;
@@ -31,58 +31,58 @@ class Adapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        if (music != null) {
-            return music.size();
+        if (this.music != null) {
+            return this.music.size();
         } else
-            return albums.size();
+            return this.albums.size();
     }
 
     @Override
-    public Object getItem(int position) {
+    public Object getItem(final int position) {
         return null;
     }
 
     @Override
-    public long getItemId(int position) {
+    public long getItemId(final int position) {
         return 0;
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, final View convertView, final ViewGroup parent) {
 
         View vie = convertView;
 
         if (vie == null) {
-            vie = LayoutInflater.from(a).inflate(
+            vie = LayoutInflater.from(this.a).inflate(
                     R.layout.listviewtemplate, parent, false);
         }
 
-        TextView album = vie.findViewById(R.id.albumname);
-        TextView songs = vie.findViewById(R.id.song);
+        final TextView album = vie.findViewById(R.id.albumname);
+        final TextView songs = vie.findViewById(R.id.song);
 
-        if (music == null) {//hide song when viewing album
+        if (this.music == null) {//hide song when viewing album
             songs.setVisibility(View.GONE);
         } else {
-            songs.setText(music.get(position));
+            songs.setText(this.music.get(position));
         }
-        ImageView imge = vie.findViewById(R.id.albumimage);
+        final ImageView imge = vie.findViewById(R.id.albumimage);
 
-        if (singlealbum != null) {// for music
+        if (this.singlealbum != null) {// for music
 
 
-            album.setText(singlealbum);
-            imge.setImageResource(singleimage);
+            album.setText(this.singlealbum);
+            imge.setImageResource(this.singleimage);
         }
 
-        if (singleimage == 0) {// in albums
-            imge.setImageBitmap(rimg.get(position));
-            album.setText(albums.get(position));
+        if (this.singleimage == 0) {// in albums
+            imge.setImageBitmap(this.rimg.get(position));
+            album.setText(this.albums.get(position));
 
 
-        } else if (singleimage == -1) {//for all music
+        } else if (this.singleimage == -1) {//for all music
 
-            imge.setImageBitmap(rimg.get(position));
-            album.setText(albums.get(position));
+            imge.setImageBitmap(this.rimg.get(position));
+            album.setText(this.albums.get(position));
         }
 
         return vie;

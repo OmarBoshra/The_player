@@ -1,8 +1,9 @@
 package com.omar.acer.musicalstructure;
 
 import android.app.Notification;
+
+import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -11,15 +12,17 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
+
 import android.os.IBinder;
-import android.os.PowerManager;
+
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.List;
+
 
 import static com.omar.acer.musicalstructure.app.CHANNEL_ID;
 
@@ -28,28 +31,28 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     public static final String MPS_RESULT = "com.example.acer.musicalstructure.MediaPlaynackService.RESULT";
     public static final String MPS_COMPLETED = "com.example.acer.musicalstructure.MediaPlaynackService.COMPLETED";
 
-    private static final String SHUTDOWN = "com.naman14.timber.shutdown";
 
-    IDBinder idBinder = new IDBinder();
+    MediaPlaybackService.IDBinder idBinder = new MediaPlaybackService.IDBinder();
 
-    boolean completestarted = false;
-    MediaPlayer mMediaPlayer = null;
+
+    boolean completestarted;
+    MediaPlayer mMediaPlayer;
     Uri file;
     int position = -1;
-    boolean didStop = false;
-    boolean didStart = false;
+    boolean didStop;
+    boolean didStart;
     LocalBroadcastManager broadcastManager;
 
-    boolean seekBarTouch = false;
+    boolean seekBarTouch;
 
     Runnable sendUpdates = new Runnable() {
         @Override
         public void run() {
-            while (mMediaPlayer != null) {
-                sendElapsedTime();
+            while (MediaPlaybackService.this.mMediaPlayer != null) {
+                MediaPlaybackService.this.sendElapsedTime();
                 try {
                     Thread.sleep(500);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -58,33 +61,11 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     private List<Uri> playingmsic;
 
 
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        if(didStart==false) {
-
-            didStart=true;
-
-
-        }
-
-        return START_NOT_STICKY;
-    }
-
-
-/*    public void onTaskRemoved(Intent intent){
-        super.onTaskRemoved(intent);
-        Intent intent=new Intent(this,this.getClass());
-        startService(intet);
-    }*/
-
-
-    public void getTouchStatus(boolean seekBarTouch) {
+    public void getTouchStatus(final boolean seekBarTouch) {
         this.seekBarTouch = seekBarTouch;
     }
 
-    public void setUris(List<Uri> playingmsic) {
+    public void setUris(final List<Uri> playingmsic) {
         this.playingmsic = playingmsic;
     }
 
@@ -92,199 +73,202 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     @Override
     public void onCreate() {
 
-            startServiceWithNotification();
+        this.startServiceWithNotification();
 
-        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
-        wakeLock.acquire();
-
-            broadcastManager = LocalBroadcastManager.getInstance(this);
+        this.broadcastManager = LocalBroadcastManager.getInstance(this);
             super.onCreate();
 
     }
 
+
     @Override
     public void onDestroy() {
-//        stop();
+
+
         super.onDestroy();
     }
 
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return idBinder;
+    public IBinder onBind(final Intent intent) {
+
+        return this.idBinder;
     }
 
     @Override
-    public boolean onUnbind(Intent intent) {
+    public boolean onUnbind(final Intent intent) {
         // Si le service est débinder, arrêter la lecture
-        stop();
         return super.onUnbind(intent);
     }
 
 
-    public void setPosition(int position) {
+    public void setPosition(final int position) {
         this.position = position;
     }
 
-    public void init(Uri file) {
+    public void init(final Uri file) {
         this.file = file;
-        stop();
+        this.stop();
         // Si un titre est déjà en train de jouer, l'arrêter
         // Initialisation du lecteur
         try {
-            mMediaPlayer = new MediaPlayer();
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mMediaPlayer.setDataSource(getApplicationContext(), file);
-            mMediaPlayer.setOnPreparedListener(this);
-            mMediaPlayer.setOnCompletionListener(this);
-            mMediaPlayer.prepareAsync(); // prepare async to not block main thread
+            this.mMediaPlayer = new MediaPlayer();
+            this.mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            this.mMediaPlayer.setDataSource(this.getApplicationContext(), file);
+            this.mMediaPlayer.setOnPreparedListener(this);
+            this.mMediaPlayer.setOnCompletionListener(this);
+            this.mMediaPlayer.prepareAsync(); // prepare async to not block main thread
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
-            stop();
+            this.stop();
         }
     }
 
     void startServiceWithNotification() {
 
-// TO OPEN ACTIVITY FROM THE NOTIFICATION
-     /*   Intent notificationIntent = new Intent(getApplicationContext(), NowPlaying.class);
-        notificationIntent.setAction("start");  // A string containing the action name
 
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent contentPendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-*/
-        Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.play);
+        final Intent notificationIntent = new Intent(this.getApplicationContext(), NowPlaying.class);
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(getResources().getString(R.string.app_name))
-                .setTicker(getResources().getString(R.string.app_name))
-                .setContentText(getResources().getString(R.string.albums))
-                .setSmallIcon(R.drawable.play)
+
+//        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        final PendingIntent contentPendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+
+   final Bitmap icon = BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher);
+
+        final NotificationManagerCompat notificationManagerCompat= NotificationManagerCompat.from(this);
+
+        final Notification  notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(this.getResources().getString(R.string.app_name))
+                .setTicker(this.getResources().getString(R.string.app_name))
+                .setSmallIcon(R.drawable.iconmain)
                 .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-//                .setDeleteIntent(contentPendingIntent)  // if needed
+        .setContentIntent(contentPendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+
                 .build();
-        notification.flags = notification.flags | Notification.FLAG_NO_CLEAR;     // NO_CLEAR makes the notification stay when the user performs a "delete all" command
-        startForeground(1, notification);
+
+        notificationManagerCompat.notify(1, notification);
+
     }
 
     @Override
-    public void onPrepared(MediaPlayer mp) {
+    public void onPrepared(final MediaPlayer mp) {
         // Le lecteur est prêt, on commence la lecture
         mp.start();
 
         // Création et lancement du Thread de mise à jour de l'UI
-        Thread updateThread = new Thread(sendUpdates);
+        final Thread updateThread = new Thread(this.sendUpdates);
         updateThread.start();
     }
 
     public void pause() {
-        if (mMediaPlayer != null)
-            mMediaPlayer.pause();
+        if (this.mMediaPlayer != null)
+            this.mMediaPlayer.pause();
     }
 
     public void play() {
-        if (mMediaPlayer != null) {
+        if (this.mMediaPlayer != null) {
 
-            mMediaPlayer.start();
+            this.mMediaPlayer.start();
 
         }
     }
 
     public void stop() {
-        if (mMediaPlayer != null) {
+        if (this.mMediaPlayer != null) {
 
 
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
+            this.mMediaPlayer.stop();
+            this.mMediaPlayer.release();
 
-            mMediaPlayer = null;
+            this.mMediaPlayer = null;
         }
 
     }
 
-    public void seekTo(@NonNull int msec) {
-        if (mMediaPlayer != null)
-            mMediaPlayer.seekTo(msec);
+    public void seekTo(@NonNull final int msec) {
+        if (this.mMediaPlayer != null)
+            this.mMediaPlayer.seekTo(msec);
 
     }
 
     public boolean isPlaying() {
-        return mMediaPlayer != null && mMediaPlayer.isPlaying();
+        return this.mMediaPlayer != null && this.mMediaPlayer.isPlaying();
     }
 
     public Uri getFile() {
-        return file;
+        return this.file;
     }
 
 
-    public void setcompletestarted(boolean completestarted) {
+    public void setcompletestarted(final boolean completestarted) {
         this.completestarted = completestarted;
     }
 
     @Override
-    public void onCompletion(MediaPlayer mp) {
+    public void onCompletion(final MediaPlayer mp) {
         // Utilisation du BroadcastReceiver local pour indiquer à l'activité que la lecture est terminée
 
         mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
+            public boolean onError(final MediaPlayer mp, final int what, final int extra) {
 
                 return true;
             }
         });
 
-        if (completestarted && !seekBarTouch) {
-            SharedPreferences pref = this.getSharedPreferences("MyPref", 0);
+        if (this.completestarted && !this.seekBarTouch) {
+            final SharedPreferences pref = getSharedPreferences("MyPref", 0);
 
             if (pref.contains("settings")) {
                 switch (pref.getInt("settings", 0)) {
 
                     case 1:
 
-                        if (playingmsic != null && playingmsic.size() > 1) {
-                            if (position == playingmsic.size() - 1)
-                                position = 0;
+                        if (this.playingmsic != null && this.playingmsic.size() > 1) {
+                            if (this.position == this.playingmsic.size() - 1)
+                                this.position = 0;
 
-                            file = playingmsic.get(++position);
-                            init(file);
-                            play();
+                            this.file = this.playingmsic.get(++this.position);
+                            this.init(this.file);
+                            this.play();
                         }
 
 
                         break;
                     case 2:
-                        init(file);
-                        play();
+                        this.init(this.file);
+                        this.play();
 
                         break;
                     case 3:
 
 
-                        stop();
-                        didStop = true;
+                        this.stop();
+                        this.didStop = true;
                         break;
 
                 }
-                completestarted = false;
+                this.completestarted = false;
             }
         } else
-            completestarted = true;
+            this.completestarted = true;
 
-        Intent intent = new Intent(MPS_COMPLETED);
-        intent.putExtra("completed", completestarted);
-        broadcastManager.sendBroadcast(intent);
+        final Intent intent = new Intent(MediaPlaybackService.MPS_COMPLETED);
+        intent.putExtra("completed", this.completestarted);
+        this.broadcastManager.sendBroadcast(intent);
     }
 
     private void sendElapsedTime() {
         // Utilisation du BroadcastReceiver local pour envoyer la durée passée
-        Intent intent = new Intent(MPS_RESULT);
-        if (mMediaPlayer != null)
+        final Intent intent = new Intent(MediaPlaybackService.MPS_RESULT);
+        if (this.mMediaPlayer != null)
             try {
-                intent.putExtra(MPS_MESSAGE, mMediaPlayer.getCurrentPosition());
-                broadcastManager.sendBroadcast(intent);
-            } catch (IllegalStateException e) {
+                intent.putExtra(MediaPlaybackService.MPS_MESSAGE, this.mMediaPlayer.getCurrentPosition());
+                this.broadcastManager.sendBroadcast(intent);
+            } catch (final IllegalStateException e) {
 
             }
     }

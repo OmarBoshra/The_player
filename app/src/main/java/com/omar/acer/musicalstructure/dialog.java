@@ -10,41 +10,41 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class dialog {
-    private Context context;
+    private final Context context;
     private Dialog dialogue;
 
-    public dialog(Context context) {
+    public dialog(final Context context) {
         this.context = context;
     }
 
     void Loading() {
 
-        dialogue = new Dialog(context);
-        dialogue.setContentView(R.layout.dialogue);
+        this.dialogue = new Dialog(this.context);
+        this.dialogue.setContentView(R.layout.dialogue);
 
-        dialogue.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
+        this.dialogue.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
 
-        LinearLayout l = dialogue.findViewById(R.id.checkboxes);
+        final LinearLayout l = this.dialogue.findViewById(R.id.checkboxes);
         l.setVisibility(View.GONE);
-        Button b = dialogue.findViewById(R.id.ok);
+        final Button b = this.dialogue.findViewById(R.id.ok);
         b.setVisibility(View.GONE);
 
-        final TextView tv = dialogue.findViewById(R.id.textView);
+        TextView tv = this.dialogue.findViewById(R.id.textView);
         tv.setText("Just a sec..");
         tv.setTextColor(Color.MAGENTA);
-        ConstraintLayout c = dialogue.findViewById(R.id.dialogueback);
-        c.setBackgroundColor(context.getResources().getColor(R.color.lighterblack));
+        final ConstraintLayout c = this.dialogue.findViewById(R.id.dialogueback);
+        c.setBackgroundColor(this.context.getResources().getColor(R.color.lighterblack));
 
 
-        dialogue.getWindow().getAttributes().windowAnimations = R.style.Widget_AppCompat_PopupMenu;
+        this.dialogue.getWindow().getAttributes().windowAnimations = R.style.Widget_AppCompat_PopupMenu;
 
-        dialogue.show();
+        this.dialogue.show();
 
 
     }
 
     void dismiss() {
-        dialogue.dismiss();
+        this.dialogue.dismiss();
     }
 
 }
