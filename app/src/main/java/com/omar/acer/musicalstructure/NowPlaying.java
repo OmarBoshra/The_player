@@ -225,9 +225,6 @@ private SharedPreferences pref;
         loading.Loading();
 
 
-        Intent startIntent = new Intent(getApplicationContext(), powerSupport.class);
-        startService(startIntent);
-
         getApplicationContext().bindService(new Intent(getApplicationContext(),
                 MediaPlaybackService.class), connection, BIND_AUTO_CREATE);
 
@@ -586,7 +583,6 @@ private SharedPreferences pref;
 
     @Override
     protected void onDestroy() {
-        mediaPlaybackService.stop();
 
         super.onDestroy();
 

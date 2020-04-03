@@ -108,20 +108,20 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
     public void init(final Uri file) {
         this.file = file;
-        this.stop();
+        stop();
         // Si un titre est déjà en train de jouer, l'arrêter
         // Initialisation du lecteur
         try {
-            this.mMediaPlayer = new MediaPlayer();
-            this.mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            this.mMediaPlayer.setDataSource(this.getApplicationContext(), file);
-            this.mMediaPlayer.setOnPreparedListener(this);
-            this.mMediaPlayer.setOnCompletionListener(this);
-            this.mMediaPlayer.prepareAsync(); // prepare async to not block main thread
+           mMediaPlayer = new MediaPlayer();
+           mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+           mMediaPlayer.setDataSource(getApplicationContext(), file);
+           mMediaPlayer.setOnPreparedListener(this);
+           mMediaPlayer.setOnCompletionListener(this);
+           mMediaPlayer.prepareAsync(); // prepare async to not block main thread
 
         } catch (final IOException e) {
             e.printStackTrace();
-            this.stop();
+            stop();
         }
     }
 
@@ -164,26 +164,26 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     }
 
     public void pause() {
-        if (this.mMediaPlayer != null)
-            this.mMediaPlayer.pause();
+        if (mMediaPlayer != null)
+            mMediaPlayer.pause();
     }
 
     public void play() {
-        if (this.mMediaPlayer != null) {
+        if (mMediaPlayer != null) {
 
-            this.mMediaPlayer.start();
+            mMediaPlayer.start();
 
         }
     }
 
     public void stop() {
-        if (this.mMediaPlayer != null) {
+        if (mMediaPlayer != null) {
 
 
-            this.mMediaPlayer.stop();
-            this.mMediaPlayer.release();
+            mMediaPlayer.stop();
+            mMediaPlayer.release();
 
-            this.mMediaPlayer = null;
+            mMediaPlayer = null;
         }
 
     }
