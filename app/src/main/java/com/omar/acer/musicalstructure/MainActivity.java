@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         if (!listPermissionsNeeded.isEmpty()) {
 
 
-            this.alertDialog();
+           alertDialog();
 
         }
     }
@@ -55,26 +55,26 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
 
-        final Button toalbum = this.findViewById(R.id.toalbums);
-        Button tomusic = this.findViewById(R.id.tomusic);
-        final Button tonowplaying = this.findViewById(R.id.toplayingsong);
+        final Button toalbum = findViewById(R.id.toalbums);
+        Button tomusic = findViewById(R.id.tomusic);
+        final Button tonowplaying = findViewById(R.id.toplayingsong);
 
 
-        this.pref = getSharedPreferences("MyPref", 0);
+       pref = getSharedPreferences("MyPref", 0);
 
 //to go to the fav music by default
-        if (this.getIntent().getAction()!=null&& this.pref.contains("favorite") && this.pref.getInt("favorite", 0) == 1) {
+        if (getIntent().getAction()!=null&& pref.contains("favorite") && pref.getInt("favorite", 0) == 1) {
 
             musicinfo.intents(this, 3);
-            this.finish();
+          finish();
         }
         toalbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                MainActivity.this.loading.Loading();
-                musicinfo.navigation(MainActivity.this, 2, MainActivity.this.pref);
+                loading.Loading();
+                musicinfo.navigation(MainActivity.this, 2, pref);
 
 
             }
@@ -83,10 +83,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(final View v) {
                 if (musicinfo.issongopen)
-                    MainActivity.this.onBackPressed();
+                   onBackPressed();
                 else{
-                    musicinfo.navigation(MainActivity.this, 3, MainActivity.this.pref);
-
+                    musicinfo.navigation(MainActivity.this, 3, pref);
 
 
                 }
@@ -95,8 +94,8 @@ public class MainActivity extends AppCompatActivity {
         tomusic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                MainActivity.this.loading.Loading();
-                musicinfo.navigation(MainActivity.this, 1, MainActivity.this.pref);
+                loading.Loading();
+                musicinfo.navigation(MainActivity.this, 1, pref);
 
 
             }
@@ -107,8 +106,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!this.isdialogopen)
-            this.permissions();
+        if (!isdialogopen)
+            permissions();
     }
 
     @Override
@@ -116,20 +115,14 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (data != null) {
-            musicinfo.getUris(this, data.getData(), this.pref, requestCode);
+            musicinfo.getUris(this, data.getData(), pref, requestCode);
 
-            grantUriPermission(getPackageName(), data.getData(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            int takeFlags = data.getFlags()
-                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);// Check for the freshest data.
-            //noinspection WrongConstant
-            getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
 
-            this.finish();
+            finish();
 
 
         }else
-            this.loading.dismiss();
+            loading.dismiss();
 
 
     }
@@ -155,19 +148,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(final View v) {
                 Toast.makeText(MainActivity.this, "Click on permissions", Toast.LENGTH_SHORT).show();
-                MainActivity.this.openAppSettings();
+                openAppSettings();
                 d.dismiss();
             }
         });
 
         d.show();
 
-        this.isdialogopen = true;
+        isdialogopen = true;
     }
 
     private void openAppSettings() {
 
-        final Uri packageUri = Uri.fromParts("package", this.getApplicationContext().getPackageName(), null);
+        final Uri packageUri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
 
         final Intent applicationDetailsSettingsIntent = new Intent();
 
@@ -175,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
         applicationDetailsSettingsIntent.setData(packageUri);
         applicationDetailsSettingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        this.startActivity(applicationDetailsSettingsIntent);
+        startActivity(applicationDetailsSettingsIntent);
 
     }
 
@@ -207,12 +200,12 @@ public class MainActivity extends AppCompatActivity {
                 restart.setEnabled(false);
                 stopsong.setEnabled(false);
 
-                if (MainActivity.this.settings > 0) {
-                    MainActivity.this.settings = 0;
+                if (settings > 0) {
+                   settings = 0;
                     restart.setEnabled(true);
                     stopsong.setEnabled(true);
                 } else
-                    MainActivity.this.settings = 1;
+                    settings = 1;
             }
         });
 
@@ -223,12 +216,12 @@ public class MainActivity extends AppCompatActivity {
                 next.setEnabled(false);
                 stopsong.setEnabled(false);
 
-                if (MainActivity.this.settings > 0) {
-                    MainActivity.this.settings = 0;
+                if (settings > 0) {
+                    settings = 0;
                     next.setEnabled(true);
                     stopsong.setEnabled(true);
                 } else
-                    MainActivity.this.settings = 2;
+                    settings = 2;
 
             }
         });
@@ -240,19 +233,19 @@ public class MainActivity extends AppCompatActivity {
                 restart.setEnabled(false);
                 next.setEnabled(false);
 
-                if (MainActivity.this.settings > 0) {
-                    MainActivity.this.settings = 0;
+                if (settings > 0) {
+                    settings = 0;
                     restart.setEnabled(true);
                     next.setEnabled(true);
                 } else
-                    MainActivity.this.settings = 3;
+                    settings = 3;
 
             }
         });
 
-        if (this.pref.contains("settings")) {
+        if (pref.contains("settings")) {
 
-            switch (this.pref.getInt("settings", 0)) {
+            switch (pref.getInt("settings", 0)) {
 
                 case 1:
                     next.performClick();
@@ -274,16 +267,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(final View v) {
 
-                if (MainActivity.this.favoritmusic > 0) {
-                    MainActivity.this.favoritmusic = 0;
+                if (favoritmusic > 0) {
+                    favoritmusic = 0;
                 } else
-                    MainActivity.this.favoritmusic = 1;
+                    favoritmusic = 1;
 
             }
         });
 
-        if (this.pref.contains("favorite")) {
-            if (this.pref.getInt("favorite", 0) == 1)
+        if (pref.contains("favorite")) {
+            if (pref.getInt("favorite", 0) == 1)
                 songfav.performClick();
 
         }
@@ -292,10 +285,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(final View v) {
                 Toast.makeText(MainActivity.this, "SAVED", Toast.LENGTH_SHORT).show();
-                MainActivity.this.pref.edit().putInt("settings", MainActivity.this.settings).apply();
-                MainActivity.this.pref.edit().putInt("favorite", MainActivity.this.favoritmusic).apply();
-                MainActivity.this.settings = 0;
-                MainActivity.this.favoritmusic = 0;
+                pref.edit().putInt("settings", settings).apply();
+                pref.edit().putInt("favorite", favoritmusic).apply();
+                settings = 0;
+                favoritmusic = 0;
 
                 d.dismiss();
             }
@@ -305,8 +298,8 @@ public class MainActivity extends AppCompatActivity {
         d.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(final DialogInterface dialog) {
-                MainActivity.this.settings = 0;
-                MainActivity.this.favoritmusic = 0;
+                settings = 0;
+                favoritmusic = 0;
 
             }
         });

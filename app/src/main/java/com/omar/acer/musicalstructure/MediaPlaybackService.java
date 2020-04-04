@@ -48,8 +48,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     Runnable sendUpdates = new Runnable() {
         @Override
         public void run() {
-            while (MediaPlaybackService.this.mMediaPlayer != null) {
-                MediaPlaybackService.this.sendElapsedTime();
+            while (mMediaPlayer != null) {
+                sendElapsedTime();
                 try {
                     Thread.sleep(500);
                 } catch (final InterruptedException e) {
@@ -73,9 +73,9 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     @Override
     public void onCreate() {
 
-        this.startServiceWithNotification();
+       startServiceWithNotification();
 
-        this.broadcastManager = LocalBroadcastManager.getInstance(this);
+       broadcastManager = LocalBroadcastManager.getInstance(this);
             super.onCreate();
 
     }
@@ -92,7 +92,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     @Override
     public IBinder onBind(final Intent intent) {
 
-        return this.idBinder;
+        return idBinder;
     }
 
     @Override
@@ -140,8 +140,8 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         final NotificationManagerCompat notificationManagerCompat= NotificationManagerCompat.from(this);
 
         final Notification  notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(this.getResources().getString(R.string.app_name))
-                .setTicker(this.getResources().getString(R.string.app_name))
+                .setContentTitle(getResources().getString(R.string.app_name))
+                .setTicker(getResources().getString(R.string.app_name))
                 .setSmallIcon(R.drawable.iconmain)
                 .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
         .setContentIntent(contentPendingIntent)
@@ -159,7 +159,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
         mp.start();
 
         // Création et lancement du Thread de mise à jour de l'UI
-        final Thread updateThread = new Thread(this.sendUpdates);
+        final Thread updateThread = new Thread(sendUpdates);
         updateThread.start();
     }
 
@@ -189,17 +189,17 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
     }
 
     public void seekTo(@NonNull final int msec) {
-        if (this.mMediaPlayer != null)
-            this.mMediaPlayer.seekTo(msec);
+        if (mMediaPlayer != null)
+            mMediaPlayer.seekTo(msec);
 
     }
 
     public boolean isPlaying() {
-        return this.mMediaPlayer != null && this.mMediaPlayer.isPlaying();
+        return mMediaPlayer != null && mMediaPlayer.isPlaying();
     }
 
     public Uri getFile() {
-        return this.file;
+        return file;
     }
 
 
@@ -219,7 +219,7 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
             }
         });
 
-        if (this.completestarted && !this.seekBarTouch) {
+        if (completestarted && !seekBarTouch) {
             final SharedPreferences pref = getSharedPreferences("MyPref", 0);
 
             if (pref.contains("settings")) {
@@ -227,38 +227,38 @@ public class MediaPlaybackService extends Service implements MediaPlayer.OnPrepa
 
                     case 1:
 
-                        if (this.playingmsic != null && this.playingmsic.size() > 1) {
-                            if (this.position == this.playingmsic.size() - 1)
-                                this.position = 0;
+                        if (playingmsic != null && playingmsic.size() > 1) {
+                            if (position == playingmsic.size() - 1)
+                                position = 0;
 
-                            this.file = this.playingmsic.get(++this.position);
-                            this.init(this.file);
-                            this.play();
+                            file =playingmsic.get(++this.position);
+                            init(file);
+                            play();
                         }
 
 
                         break;
                     case 2:
-                        this.init(this.file);
-                        this.play();
+                        init(file);
+                        play();
 
                         break;
                     case 3:
 
 
-                        this.stop();
-                        this.didStop = true;
+                        stop();
+                        didStop = true;
                         break;
 
                 }
-                this.completestarted = false;
+              completestarted = false;
             }
         } else
-            this.completestarted = true;
+            completestarted = true;
 
-        final Intent intent = new Intent(MediaPlaybackService.MPS_COMPLETED);
-        intent.putExtra("completed", this.completestarted);
-        this.broadcastManager.sendBroadcast(intent);
+        final Intent intent = new Intent(MPS_COMPLETED);
+        intent.putExtra("completed", completestarted);
+        broadcastManager.sendBroadcast(intent);
     }
 
     private void sendElapsedTime() {

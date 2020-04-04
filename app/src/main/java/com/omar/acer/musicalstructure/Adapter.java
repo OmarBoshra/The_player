@@ -31,10 +31,10 @@ class Adapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        if (this.music != null) {
-            return this.music.size();
+        if (music != null) {
+            return music.size();
         } else
-            return this.albums.size();
+            return albums.size();
     }
 
     @Override
@@ -53,36 +53,36 @@ class Adapter extends BaseAdapter {
         View vie = convertView;
 
         if (vie == null) {
-            vie = LayoutInflater.from(this.a).inflate(
+            vie = LayoutInflater.from(a).inflate(
                     R.layout.listviewtemplate, parent, false);
         }
 
         final TextView album = vie.findViewById(R.id.albumname);
         final TextView songs = vie.findViewById(R.id.song);
 
-        if (this.music == null) {//hide song when viewing album
+        if (music == null) {//hide song when viewing album
             songs.setVisibility(View.GONE);
         } else {
-            songs.setText(this.music.get(position));
+            songs.setText(music.get(position));
         }
         final ImageView imge = vie.findViewById(R.id.albumimage);
 
-        if (this.singlealbum != null) {// for music
+        if (singlealbum != null) {// for music
 
 
-            album.setText(this.singlealbum);
-            imge.setImageResource(this.singleimage);
+            album.setText(singlealbum);
+            imge.setImageResource(singleimage);
         }
 
-        if (this.singleimage == 0) {// in albums
-            imge.setImageBitmap(this.rimg.get(position));
-            album.setText(this.albums.get(position));
+        if (singleimage == 0) {// in albums
+            imge.setImageBitmap(rimg.get(position));
+            album.setText(albums.get(position));
 
 
-        } else if (this.singleimage == -1) {//for all music
+        } else if (singleimage == -1) {//for all music
 
-            imge.setImageBitmap(this.rimg.get(position));
-            album.setText(this.albums.get(position));
+            imge.setImageBitmap(rimg.get(position));
+            album.setText(albums.get(position));
         }
 
         return vie;

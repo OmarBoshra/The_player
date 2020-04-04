@@ -19,32 +19,32 @@ public class dialog {
 
     void Loading() {
 
-        this.dialogue = new Dialog(this.context);
-        this.dialogue.setContentView(R.layout.dialogue);
+      dialogue = new Dialog(context);
+      dialogue.setContentView(R.layout.dialogue);
 
-        this.dialogue.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
+      dialogue.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
 
-        final LinearLayout l = this.dialogue.findViewById(R.id.checkboxes);
+        final LinearLayout l = dialogue.findViewById(R.id.checkboxes);
         l.setVisibility(View.GONE);
-        final Button b = this.dialogue.findViewById(R.id.ok);
+        final Button b = dialogue.findViewById(R.id.ok);
         b.setVisibility(View.GONE);
 
-        TextView tv = this.dialogue.findViewById(R.id.textView);
+        TextView tv = dialogue.findViewById(R.id.textView);
         tv.setText("Just a sec..");
         tv.setTextColor(Color.MAGENTA);
-        final ConstraintLayout c = this.dialogue.findViewById(R.id.dialogueback);
-        c.setBackgroundColor(this.context.getResources().getColor(R.color.lighterblack));
+        final ConstraintLayout c = dialogue.findViewById(R.id.dialogueback);
+        c.setBackgroundColor(context.getResources().getColor(R.color.lighterblack));
 
 
-        this.dialogue.getWindow().getAttributes().windowAnimations = R.style.Widget_AppCompat_PopupMenu;
+        dialogue.getWindow().getAttributes().windowAnimations = R.style.Widget_AppCompat_PopupMenu;
 
-        this.dialogue.show();
+        dialogue.show();
 
 
     }
 
     void dismiss() {
-        this.dialogue.dismiss();
+       dialogue.dismiss();
     }
 
 }

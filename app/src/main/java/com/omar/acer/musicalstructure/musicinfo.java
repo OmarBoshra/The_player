@@ -146,17 +146,17 @@ class musicinfo {
             if (pref.contains("gotparentSongFolderUri"))//to set new song in new path
                 editor.remove("gotparentSongFolderUri");
 
-            editor.putString("gotsongname", musicinfo.getMusicNames(context, Arrays.asList(uri)).get(0));// save the song name
-            editor.putString("gotsongalbum", musicinfo.getAlbumNames(context, Arrays.asList(uri)).get(0));// save the song album
+            editor.putString("gotsongname", getMusicNames(context, Arrays.asList(uri)).get(0));// save the song name
+            editor.putString("gotsongalbum", getAlbumNames(context, Arrays.asList(uri)).get(0));// save the song album
 
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            musicinfo.getImages(context, Arrays.asList(uri)).get(0).compress(Bitmap.CompressFormat.PNG, 100, baos); //bm is the bitmap object
+            getImages(context, Arrays.asList(uri)).get(0).compress(Bitmap.CompressFormat.PNG, 100, baos); //bm is the bitmap object
             final byte[] b = baos.toByteArray();
 
             final String encoded = Base64.encodeToString(b, Base64.DEFAULT);
 
             editor.putString("gotsongimage", encoded);// save the song image
-            editor.putInt("gotsongduration", musicinfo.getDuration(context, uri));// save the song image
+            editor.putInt("gotsongduration", getDuration(context, uri));// save the song image
 
 
             editor.apply();
@@ -171,32 +171,37 @@ class musicinfo {
     static void getUris(Context context, final Uri uri, final SharedPreferences pref, final int requestCode) {
 
 
+        context.grantUriPermission(context.getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        //noinspection WrongConstant
+        context.getContentResolver().takePersistableUriPermission(uri, 3);
+
         switch (requestCode) {
 
             case 3:
 
-                musicinfo.setpref(context, pref, requestCode, uri);
-                musicinfo.intents(context, requestCode);
+                setpref(context, pref, requestCode, uri);
+                intents(context, requestCode);
                 break;
             default:
                 DocumentFile musicfile = DocumentFile.fromTreeUri(context, uri);
 
                 if (requestCode == 2) //for albums
-                    musicinfo.albumUris = musicinfo.getFiles(musicfile, 2, context, null);
+                    albumUris = getFiles(musicfile, 2, context, null);
                 else if (pref.contains("favoritalbum"))//in case its a playlist of a fav album
-                    musicinfo.musicUris = musicinfo.getFiles(musicfile, 4, context, pref.getString("favoritalbum", null));
+                    musicUris =getFiles(musicfile, 4, context, pref.getString("favoritalbum", null));
                 else
-                    musicinfo.musicUris = musicinfo.getFiles(musicfile, 1, context, null);
+                    musicUris =getFiles(musicfile, 1, context, null);
 
                 musicfile = null;
 
-                if (requestCode == 2 ? musicinfo.albumUris == null : musicinfo.musicUris == null) {
+                if (requestCode == 2 ? albumUris == null : musicUris == null) {
 
                     Toast.makeText(context, "Please choose a folder with music in it", Toast.LENGTH_LONG).show();
                 } else {
                     if (requestCode < 5)//so request code 5 doesn't override favorites
-                        musicinfo.setpref(context, pref, requestCode, uri);
-                    musicinfo.intents(context, requestCode);
+                       setpref(context, pref, requestCode, uri);
+                    intents(context, requestCode);
 
                 }
         }
@@ -263,11 +268,11 @@ class musicinfo {
             case 2:
 
                 if (pref.contains("gotAlbums")) {
-                    musicinfo.getUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 2);
+                    getUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 2);
                 } else if (pref.contains("gotmusic"))
-                    musicinfo.getUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 2);
+                    getUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 2);
                 else if (pref.contains("gotparentSongFolderUri"))
-                    musicinfo.getUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 2);
+                    getUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 2);
 
 
                 else {
@@ -284,11 +289,11 @@ return;
             case 1:
 
                 if (pref.contains("gotmusic")) {
-                    musicinfo.getUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 1);
+                    getUris(activity, Uri.parse(pref.getString("gotmusic", null)), pref, 1);
                 } else if (pref.contains("gotAlbums"))
-                    musicinfo.getUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 1);
+                    getUris(activity, Uri.parse(pref.getString("gotAlbums", null)), pref, 1);
                 else if (pref.contains("gotparentSongFolderUri"))
-                    musicinfo.getUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 1);
+                    getUris(activity, Uri.parse(pref.getString("gotparentSongFolderUri", null)), pref, 1);
 
                 else {
                     final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -329,9 +334,9 @@ return;
 
                     if (requestcode == 2) {//to get albums
 
-                        if (albumName == null || !albumName.equals(musicinfo.getAlbumNames(context, Arrays.asList(file.getUri())).get(0))) {
+                        if (albumName == null || !albumName.equals(getAlbumNames(context, Arrays.asList(file.getUri())).get(0))) {
 
-                            albumName = musicinfo.getAlbumNames(context, Arrays.asList(file.getUri())).get(0);
+                            albumName = getAlbumNames(context, Arrays.asList(file.getUri())).get(0);
                             if (albumName != null) {
                                 fileUris.add(file.getUri());
                                 gotmp3 = true;
@@ -340,7 +345,7 @@ return;
 
                     } else if (requestcode == 4) {//get music related to album
 
-                        if (albumName.equals(musicinfo.getAlbumNames(context, Arrays.asList(file.getUri())).get(0))) {
+                        if (albumName.equals(getAlbumNames(context, Arrays.asList(file.getUri())).get(0))) {
                             fileUris.add(file.getUri());
                             gotmp3 = true;
                         }
