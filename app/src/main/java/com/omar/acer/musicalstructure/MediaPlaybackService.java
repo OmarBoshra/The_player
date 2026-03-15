@@ -1,283 +1,434 @@
 package com.omar.acer.musicalstructure;
 
-import android.app.Notification;
-
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
-
+import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.util.Log;
 
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-
 
 import static com.omar.acer.musicalstructure.app.CHANNEL_ID;
 
-public class MediaPlaybackService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
+public class MediaPlaybackService extends Service implements 
+        MediaPlayer.OnPreparedListener, 
+        MediaPlayer.OnCompletionListener,
+        MediaPlayer.OnErrorListener,
+        AudioManager.OnAudioFocusChangeListener {
+
     public static final String MPS_MESSAGE = "com.example.acer.musicalstructure.MediaPlaynackService.MESSAGE";
     public static final String MPS_RESULT = "com.example.acer.musicalstructure.MediaPlaynackService.RESULT";
     public static final String MPS_COMPLETED = "com.example.acer.musicalstructure.MediaPlaynackService.COMPLETED";
+    public static final String MPS_NEW_SONG = "com.example.acer.musicalstructure.MediaPlaynackService.NEW_SONG";
+    
+    public static final String ACTION_STOP = "com.omar.acer.musicalstructure.ACTION_STOP";
+    public static final String ACTION_NEXT = "com.omar.acer.musicalstructure.ACTION_NEXT";
+    public static final String ACTION_PREV = "com.omar.acer.musicalstructure.ACTION_PREV";
+    public static final String ACTION_PAUSE_RESUME = "com.omar.acer.musicalstructure.ACTION_PAUSE_RESUME";
 
+    private final MediaPlaybackService.IDBinder idBinder = new MediaPlaybackService.IDBinder();
+    public MediaPlayer mMediaPlayer;
+    private Uri file;
+    private String currentSongName = "Unknown Title";
+    private String currentAlbumName = "Unknown Album";
+    
+    private int position = -1;
+    private LocalBroadcastManager broadcastManager;
+    private boolean seekBarTouch;
+    private List<Uri> playingmsic = new ArrayList<>();
+    private AudioManager audioManager;
+    private AudioFocusRequest focusRequest;
+    private boolean isPreparing = false;
 
-    MediaPlaybackService.IDBinder idBinder = new MediaPlaybackService.IDBinder();
-
-
-    boolean completestarted;
-    MediaPlayer mMediaPlayer;
-    Uri file;
-    int position = -1;
-    boolean didStop;
-    boolean didStart;
-    LocalBroadcastManager broadcastManager;
-
-    boolean seekBarTouch;
-
-    Runnable sendUpdates = new Runnable() {
+    private final Handler updateHandler = new Handler();
+    private final Runnable updateRunnable = new Runnable() {
         @Override
         public void run() {
-            while (mMediaPlayer != null) {
-                sendElapsedTime();
+            if (mMediaPlayer != null) {
                 try {
-                    Thread.sleep(500);
-                } catch (final InterruptedException e) {
-                    e.printStackTrace();
+                    if (mMediaPlayer.isPlaying()) {
+                        sendElapsedTime();
+                    }
+                } catch (IllegalStateException e) {
+                    // Ignore
                 }
             }
+            updateHandler.postDelayed(this, 1000);
         }
     };
-    private List<Uri> playingmsic;
-
 
     public void getTouchStatus(final boolean seekBarTouch) {
         this.seekBarTouch = seekBarTouch;
     }
 
     public void setUris(final List<Uri> playingmsic) {
-        this.playingmsic = playingmsic;
+        if (playingmsic != null) {
+            this.playingmsic = new ArrayList<>(playingmsic);
+        }
     }
 
+    public List<Uri> getUris() {
+        return playingmsic;
+    }
+
+    public int getPosition() {
+        return position;
+    }
 
     @Override
     public void onCreate() {
-
-       startServiceWithNotification();
-
-       broadcastManager = LocalBroadcastManager.getInstance(this);
-            super.onCreate();
-
+        super.onCreate();
+        broadcastManager = LocalBroadcastManager.getInstance(this);
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        updateHandler.post(updateRunnable);
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null && intent.getAction() != null) {
+            switch (intent.getAction()) {
+                case ACTION_STOP:
+                    stop();
+                    stopForeground(true);
+                    final Intent stoppedIntent = new Intent(MPS_COMPLETED);
+                    stoppedIntent.putExtra("completed", true);
+                    broadcastManager.sendBroadcast(stoppedIntent);
+                    stopSelf();
+                    return START_NOT_STICKY;
+                case ACTION_NEXT:
+                    playNext();
+                    break;
+                case ACTION_PREV:
+                    playPrevious();
+                    break;
+                case ACTION_PAUSE_RESUME:
+                    if (isPlaying()) pause(); else play();
+                    break;
+            }
+        }
+        startServiceWithNotification();
+        return START_STICKY;
+    }
+
+    private void playNext() {
+        if (playingmsic != null && !playingmsic.isEmpty()) {
+            position = (position < playingmsic.size() - 1) ? position + 1 : 0;
+            init(playingmsic.get(position));
+        }
+    }
+
+    private void playPrevious() {
+        if (playingmsic != null && !playingmsic.isEmpty()) {
+            position = (position > 0) ? position - 1 : playingmsic.size() - 1;
+            init(playingmsic.get(position));
+        }
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        if (!isPlaying()) {
+            stopSelf();
+        }
+        super.onTaskRemoved(rootIntent);
+    }
 
     @Override
     public void onDestroy() {
-
-
+        updateHandler.removeCallbacks(updateRunnable);
+        abandonAudioFocus();
+        stop();
         super.onDestroy();
     }
 
-
     @Override
     public IBinder onBind(final Intent intent) {
-
         return idBinder;
     }
-
-    @Override
-    public boolean onUnbind(final Intent intent) {
-        // Si le service est débinder, arrêter la lecture
-        return super.onUnbind(intent);
-    }
-
 
     public void setPosition(final int position) {
         this.position = position;
     }
 
     public void init(final Uri file) {
+        if (file == null) return;
         this.file = file;
-        stop();
-        // Si un titre est déjà en train de jouer, l'arrêter
-        // Initialisation du lecteur
-        try {
-           mMediaPlayer = new MediaPlayer();
-           mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-           mMediaPlayer.setDataSource(getApplicationContext(), file);
-           mMediaPlayer.setOnPreparedListener(this);
-           mMediaPlayer.setOnCompletionListener(this);
-           mMediaPlayer.prepareAsync(); // prepare async to not block main thread
+        
+        musicinfo.SongMetadata meta = musicinfo.getMetadata(this, file);
+        currentSongName = meta.title;
+        currentAlbumName = meta.album;
 
-        } catch (final IOException e) {
-            e.printStackTrace();
-            stop();
+        if (mMediaPlayer != null) {
+            try {
+                mMediaPlayer.reset();
+            } catch (Exception e) {
+                mMediaPlayer.release();
+                mMediaPlayer = createMediaPlayer();
+            }
+        } else {
+            mMediaPlayer = createMediaPlayer();
+        }
+
+        isPreparing = true;
+        try {
+           mMediaPlayer.setDataSource(getApplicationContext(), file);
+           mMediaPlayer.prepareAsync();
+        } catch (final Exception e) {
+            isPreparing = false;
+            Log.e("MediaPlaybackService", "Error setting data source", e);
         }
     }
 
-    void startServiceWithNotification() {
+    private MediaPlayer createMediaPlayer() {
+        MediaPlayer mp = new MediaPlayer();
+        mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mp.setOnPreparedListener(this);
+        mp.setOnCompletionListener(this);
+        mp.setOnErrorListener(this);
+        return mp;
+    }
 
+    private void startServiceWithNotification() {
+        Intent notificationIntent = new Intent(this, NowPlaying.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        
+        int pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            pendingIntentFlags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+        
+        PendingIntent contentPendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, pendingIntentFlags);
 
-        final Intent notificationIntent = new Intent(this.getApplicationContext(), NowPlaying.class);
+        // Actions
+        PendingIntent prevPendingIntent = PendingIntent.getService(this, 1, new Intent(this, MediaPlaybackService.class).setAction(ACTION_PREV), pendingIntentFlags);
+        PendingIntent pausePendingIntent = PendingIntent.getService(this, 2, new Intent(this, MediaPlaybackService.class).setAction(ACTION_PAUSE_RESUME), pendingIntentFlags);
+        PendingIntent nextPendingIntent = PendingIntent.getService(this, 3, new Intent(this, MediaPlaybackService.class).setAction(ACTION_NEXT), pendingIntentFlags);
+        PendingIntent stopPendingIntent = PendingIntent.getService(this, 4, new Intent(this, MediaPlaybackService.class).setAction(ACTION_STOP), pendingIntentFlags);
 
+        int pauseIcon = isPlaying() ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play;
 
-//        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        final PendingIntent contentPendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
-
-   final Bitmap icon = BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher);
-
-        final NotificationManagerCompat notificationManagerCompat= NotificationManagerCompat.from(this);
-
-        final Notification  notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(getResources().getString(R.string.app_name))
-                .setTicker(getResources().getString(R.string.app_name))
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(currentSongName)
+                .setContentText(currentAlbumName)
                 .setSmallIcon(R.drawable.iconmain)
-                .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-        .setContentIntent(contentPendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setContentIntent(contentPendingIntent)
+                .setDeleteIntent(stopPendingIntent)
+                .addAction(android.R.drawable.ic_media_previous, "Previous", prevPendingIntent)
+                .addAction(pauseIcon, "Pause/Resume", pausePendingIntent)
+                .addAction(android.R.drawable.ic_media_next, "Next", nextPendingIntent)
+                .addAction(R.drawable.stop, "Stop", stopPendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOnlyAlertOnce(true)
+                .setOngoing(isPlaying());
 
-                .build();
+        try {
+            androidx.media.app.NotificationCompat.MediaStyle mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle()
+                    .setShowActionsInCompactView(1, 2, 3);
+            builder.setStyle(mediaStyle);
+        } catch (Exception ignored) {}
 
-        notificationManagerCompat.notify(1, notification);
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(1, builder.build(), android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+        } else {
+            startForeground(1, builder.build());
+        }
     }
 
     @Override
     public void onPrepared(final MediaPlayer mp) {
-        // Le lecteur est prêt, on commence la lecture
-        mp.start();
-
-        // Création et lancement du Thread de mise à jour de l'UI
-        final Thread updateThread = new Thread(sendUpdates);
-        updateThread.start();
+        isPreparing = false;
+        if (requestAudioFocus()) {
+            mp.start();
+            startServiceWithNotification();
+            Intent intent = new Intent(MPS_NEW_SONG);
+            intent.putExtra("uri", file);
+            broadcastManager.sendBroadcast(intent);
+        }
     }
 
     public void pause() {
-        if (mMediaPlayer != null)
-            mMediaPlayer.pause();
+        if (mMediaPlayer != null && !isPreparing) {
+            try {
+                if (mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.pause();
+                    startServiceWithNotification();
+                }
+            } catch (IllegalStateException e) {
+                // Ignore
+            }
+        }
     }
 
     public void play() {
         if (mMediaPlayer != null) {
-
-            mMediaPlayer.start();
-
+            if (isPreparing) return;
+            try {
+                if (!mMediaPlayer.isPlaying()) {
+                    if (requestAudioFocus()) {
+                        mMediaPlayer.start();
+                        startServiceWithNotification();
+                    }
+                }
+            } catch (IllegalStateException e) {
+                if (file != null) init(file);
+            }
+        } else if (file != null) {
+            init(file);
         }
     }
 
     public void stop() {
+        abandonAudioFocus();
+        isPreparing = false;
         if (mMediaPlayer != null) {
-
-
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-
-            mMediaPlayer = null;
+            try {
+                mMediaPlayer.stop();
+                mMediaPlayer.release();
+            } catch (Exception e) {
+                // Ignore
+            } finally {
+                mMediaPlayer = null;
+            }
         }
-
     }
 
-    public void seekTo(@NonNull final int msec) {
-        if (mMediaPlayer != null)
-            mMediaPlayer.seekTo(msec);
-
+    public void seekTo(final int msec) {
+        if (mMediaPlayer != null && !isPreparing) {
+            try {
+                mMediaPlayer.seekTo(msec);
+            } catch (IllegalStateException e) {
+                // Ignore
+            }
+        }
     }
 
     public boolean isPlaying() {
-        return mMediaPlayer != null && mMediaPlayer.isPlaying();
+        if (isPreparing) return true;
+        try {
+            return mMediaPlayer != null && mMediaPlayer.isPlaying();
+        } catch (IllegalStateException e) {
+            return false;
+        }
     }
 
     public Uri getFile() {
         return file;
     }
 
-
-    public void setcompletestarted(final boolean completestarted) {
-        this.completestarted = completestarted;
-    }
-
     @Override
     public void onCompletion(final MediaPlayer mp) {
-        // Utilisation du BroadcastReceiver local pour indiquer à l'activité que la lecture est terminée
+        if (seekBarTouch) return;
+        final SharedPreferences pref = getSharedPreferences("MyPref", 0);
+        int settings = pref.getInt("settings", 0);
 
-        mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(final MediaPlayer mp, final int what, final int extra) {
-
-                return true;
-            }
-        });
-
-        if (completestarted && !seekBarTouch) {
-            final SharedPreferences pref = getSharedPreferences("MyPref", 0);
-
-            if (pref.contains("settings")) {
-                switch (pref.getInt("settings", 0)) {
-
-                    case 1:
-
-                        if (playingmsic != null && playingmsic.size() > 1) {
-                            if (position == playingmsic.size() - 1)
-                                position = 0;
-
-                            file =playingmsic.get(++this.position);
-                            init(file);
-                            play();
-                        }
-
-
-                        break;
-                    case 2:
-                        init(file);
-                        play();
-
-                        break;
-                    case 3:
-
-
-                        stop();
-                        didStop = true;
-                        break;
-
-                }
-              completestarted = false;
-            }
-        } else
-            completestarted = true;
-
-        final Intent intent = new Intent(MPS_COMPLETED);
-        intent.putExtra("completed", completestarted);
-        broadcastManager.sendBroadcast(intent);
-    }
-
-    private void sendElapsedTime() {
-        // Utilisation du BroadcastReceiver local pour envoyer la durée passée
-        final Intent intent = new Intent(MediaPlaybackService.MPS_RESULT);
-        if (this.mMediaPlayer != null)
-            try {
-                intent.putExtra(MediaPlaybackService.MPS_MESSAGE, this.mMediaPlayer.getCurrentPosition());
-                this.broadcastManager.sendBroadcast(intent);
-            } catch (final IllegalStateException e) {
-
-            }
-    }
-
-    public class IDBinder extends Binder {
-
-        MediaPlaybackService getService() {
-            return MediaPlaybackService.this;
+        if (settings == 1) { // Next
+            playNext();
+        } else if (settings == 2) { // Restart
+            if (file != null) init(file);
+        } else {
+            stop();
+            stopForeground(true);
+            final Intent intent = new Intent(MPS_COMPLETED);
+            intent.putExtra("completed", true);
+            broadcastManager.sendBroadcast(intent);
         }
     }
 
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        Log.e("MediaPlaybackService", "MediaPlayer error: " + what + ", " + extra);
+        isPreparing = false;
+        try {
+            mp.reset();
+        } catch (Exception e) {
+            // Ignore
+        }
+        return false;
+    }
+
+    private void sendElapsedTime() {
+        if (mMediaPlayer != null && !isPreparing) {
+            try {
+                int currentPos = mMediaPlayer.getCurrentPosition();
+                final Intent intent = new Intent(MediaPlaybackService.MPS_RESULT);
+                intent.putExtra(MPS_MESSAGE, currentPos);
+                broadcastManager.sendBroadcast(intent);
+            } catch (final Exception ignored) {}
+        }
+    }
+
+    private boolean requestAudioFocus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AudioAttributes playbackAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build();
+            focusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                    .setAudioAttributes(playbackAttributes)
+                    .setAcceptsDelayedFocusGain(true)
+                    .setOnAudioFocusChangeListener(this)
+                    .build();
+            return audioManager.requestAudioFocus(focusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        } else {
+            return audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        }
+    }
+
+    private void abandonAudioFocus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (focusRequest != null) {
+                audioManager.abandonAudioFocusRequest(focusRequest);
+                focusRequest = null;
+            }
+        } else {
+            audioManager.abandonAudioFocus(this);
+        }
+    }
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_LOSS:
+                pause();
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                pause();
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                if (mMediaPlayer != null) {
+                    try {
+                        mMediaPlayer.setVolume(0.3f, 0.3f);
+                    } catch (Exception e) {}
+                }
+                break;
+            case AudioManager.AUDIOFOCUS_GAIN:
+                if (mMediaPlayer != null) {
+                    try {
+                        mMediaPlayer.setVolume(1.0f, 1.0f);
+                        play();
+                    } catch (Exception e) {}
+                }
+                break;
+        }
+    }
+
+    public class IDBinder extends Binder {
+        MediaPlaybackService getService() { return MediaPlaybackService.this; }
+    }
 }

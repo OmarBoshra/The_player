@@ -7,10 +7,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -18,11 +17,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int STORAGE_PERMISSION_CODE = 101;
     private final dialog loading = new dialog(this);
 
     SharedPreferences pref;
@@ -33,22 +38,46 @@ public class MainActivity extends AppCompatActivity {
     private void permissions() {
         final List<String> listPermissionsNeeded = new ArrayList<>();
 
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-
-
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(Manifest.permission.READ_MEDIA_AUDIO);
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
         }
 
         if (!listPermissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[0]), STORAGE_PERMISSION_CODE);
+        }
+    }
 
-
-           alertDialog();
-
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            boolean allGranted = true;
+            if (grantResults.length > 0) {
+                for (int result : grantResults) {
+                    if (result != PackageManager.PERMISSION_GRANTED) {
+                        allGranted = false;
+                        break;
+                    }
+                }
+            } else {
+                allGranted = false;
+            }
+            
+            if (!allGranted) {
+                alertDialog();
+            }
         }
     }
 
@@ -61,88 +90,77 @@ public class MainActivity extends AppCompatActivity {
         Button tomusic = findViewById(R.id.tomusic);
         final Button tonowplaying = findViewById(R.id.toplayingsong);
 
+        pref = getSharedPreferences("MyPref", 0);
 
-       pref = getSharedPreferences("MyPref", 0);
-
-//to go to the fav music by default
-        if (getIntent().getAction()!=null&& pref.contains("favorite") && pref.getInt("favorite", 0) == 1) {
-
-            musicinfo.intents(this, 3);
-          finish();
+        if (getIntent().getAction() != null && pref.contains("favorite") && pref.getInt("favorite", 0) == 1) {
+            String songUriStr = pref.getString("gotsong", null);
+            Uri songUri = songUriStr != null ? Uri.parse(songUriStr) : null;
+            musicinfo.intents(this, 3, songUri);
+            finish();
+            return;
         }
+
         toalbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 loading.Loading();
                 musicinfo.navigation(MainActivity.this, 2, pref);
-
-
             }
         });
+
         tonowplaying.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                if (musicinfo.issongopen)
-                   onBackPressed();
-                else{
-                    musicinfo.navigation(MainActivity.this, 3, pref);
-
-
-                }
+                Intent intent = new Intent(MainActivity.this, NowPlaying.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
             }
         });
+
         tomusic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 loading.Loading();
                 musicinfo.navigation(MainActivity.this, 1, pref);
-
-
             }
         });
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (!isdialogopen)
+        if (!isdialogopen) {
             permissions();
+        }
     }
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-
-
-        if (data != null) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && data != null) {
             musicinfo.getUris(this, data.getData(), pref, requestCode);
-
-
             finish();
-
-
-        }else
+        } else {
             loading.dismiss();
-
-
+        }
     }
 
-
     private void alertDialog() {
+        if (isdialogopen) return;
 
         final Dialog d = new Dialog(this);
         d.setContentView(R.layout.dialogue);
         final Button ok = d.findViewById(R.id.ok);
         final TextView tv = d.findViewById(R.id.textView);
-        tv.setText("App requires storage access permission");
+        if (tv != null) tv.setText("App requires storage access permission");
 
         final LinearLayout checkboxes = d.findViewById(R.id.checkboxes);
-        checkboxes.setVisibility(View.GONE);
+        if (checkboxes != null) checkboxes.setVisibility(View.GONE);
 
         d.setCancelable(false);
-
-        d.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
-
+        if (d.getWindow() != null) {
+            d.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
+        }
 
         ok.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,135 +168,97 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Click on permissions", Toast.LENGTH_SHORT).show();
                 openAppSettings();
                 d.dismiss();
+                isdialogopen = false;
             }
         });
 
         d.show();
-
         isdialogopen = true;
     }
 
     private void openAppSettings() {
-
-        final Uri packageUri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
-
-        final Intent applicationDetailsSettingsIntent = new Intent();
-
-        applicationDetailsSettingsIntent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        applicationDetailsSettingsIntent.setData(packageUri);
-        applicationDetailsSettingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        startActivity(applicationDetailsSettingsIntent);
-
+        final Uri packageUri = Uri.fromParts("package", getPackageName(), null);
+        final Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
-
     public void settings(final View view) {
-
-
-
         view.animate().alpha(0.9f).setDuration(200).start();
         final Dialog d = new Dialog(this);
         d.setContentView(R.layout.dialogue);
         final Button ok = d.findViewById(R.id.ok);
         final TextView tv = d.findViewById(R.id.textView);
-        tv.setText("Settings");
+        if (tv != null) tv.setText("Settings");
 
         final CheckBox restart = d.findViewById(R.id.restart);
         final CheckBox next = d.findViewById(R.id.next);
         final CheckBox stopsong = d.findViewById(R.id.stopsong);
         final CheckBox songfav = d.findViewById(R.id.fav);
 
-
-        d.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
-
+        if (d.getWindow() != null) {
+            d.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
+        }
 
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-
-                restart.setEnabled(false);
-                stopsong.setEnabled(false);
-
-                if (settings > 0) {
-                   settings = 0;
-                    restart.setEnabled(true);
-                    stopsong.setEnabled(true);
-                } else
+                if (next.isChecked()) {
                     settings = 1;
+                    restart.setChecked(false);
+                    stopsong.setChecked(false);
+                } else {
+                    settings = 0;
+                }
             }
         });
 
         restart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-
-                next.setEnabled(false);
-                stopsong.setEnabled(false);
-
-                if (settings > 0) {
-                    settings = 0;
-                    next.setEnabled(true);
-                    stopsong.setEnabled(true);
-                } else
+                if (restart.isChecked()) {
                     settings = 2;
-
+                    next.setChecked(false);
+                    stopsong.setChecked(false);
+                } else {
+                    settings = 0;
+                }
             }
         });
 
         stopsong.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-
-                restart.setEnabled(false);
-                next.setEnabled(false);
-
-                if (settings > 0) {
-                    settings = 0;
-                    restart.setEnabled(true);
-                    next.setEnabled(true);
-                } else
+                if (stopsong.isChecked()) {
                     settings = 3;
-
+                    next.setChecked(false);
+                    restart.setChecked(false);
+                } else {
+                    settings = 0;
+                }
             }
         });
 
         if (pref.contains("settings")) {
-
-            switch (pref.getInt("settings", 0)) {
-
-                case 1:
-                    next.performClick();
-                    break;
-                case 2:
-                    restart.performClick();
-
-                    break;
-                case 3:
-                    stopsong.performClick();
-
-                    break;
+            int savedSettings = pref.getInt("settings", 0);
+            settings = savedSettings;
+            switch (savedSettings) {
+                case 1: next.setChecked(true); break;
+                case 2: restart.setChecked(true); break;
+                case 3: stopsong.setChecked(true); break;
             }
         }
 
         songfav.setOnClickListener(new View.OnClickListener() {
-
-
             @Override
             public void onClick(final View v) {
-
-                if (favoritmusic > 0) {
-                    favoritmusic = 0;
-                } else
-                    favoritmusic = 1;
-
+                favoritmusic = songfav.isChecked() ? 1 : 0;
             }
         });
 
         if (pref.contains("favorite")) {
-            if (pref.getInt("favorite", 0) == 1)
-                songfav.performClick();
-
+            favoritmusic = pref.getInt("favorite", 0);
+            songfav.setChecked(favoritmusic == 1);
         }
 
         ok.setOnClickListener(new View.OnClickListener() {
@@ -287,26 +267,17 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "SAVED", Toast.LENGTH_SHORT).show();
                 pref.edit().putInt("settings", settings).apply();
                 pref.edit().putInt("favorite", favoritmusic).apply();
-                settings = 0;
-                favoritmusic = 0;
-
                 d.dismiss();
             }
         });
 
-
         d.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(final DialogInterface dialog) {
-                settings = 0;
-                favoritmusic = 0;
-
+                // Keep existing settings on cancel
             }
         });
 
         d.show();
-
-
     }
-
 }

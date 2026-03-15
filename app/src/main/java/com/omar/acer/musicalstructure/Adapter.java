@@ -33,8 +33,11 @@ class Adapter extends BaseAdapter {
     public int getCount() {
         if (music != null) {
             return music.size();
-        } else
+        } else if (albums != null) {
             return albums.size();
+        } else {
+            return 0;
+        }
     }
 
     @Override
@@ -44,45 +47,43 @@ class Adapter extends BaseAdapter {
 
     @Override
     public long getItemId(final int position) {
-        return 0;
+        return position;
     }
 
     @Override
     public View getView(final int position, final View convertView, final ViewGroup parent) {
-
         View vie = convertView;
-
         if (vie == null) {
-            vie = LayoutInflater.from(a).inflate(
-                    R.layout.listviewtemplate, parent, false);
+            vie = LayoutInflater.from(a).inflate(R.layout.listviewtemplate, parent, false);
         }
 
-        final TextView album = vie.findViewById(R.id.albumname);
-        final TextView songs = vie.findViewById(R.id.song);
-
-        if (music == null) {//hide song when viewing album
-            songs.setVisibility(View.GONE);
-        } else {
-            songs.setText(music.get(position));
-        }
+        final TextView albumTv = vie.findViewById(R.id.albumname);
+        final TextView songsTv = vie.findViewById(R.id.song);
         final ImageView imge = vie.findViewById(R.id.albumimage);
 
-        if (singlealbum != null) {// for music
-
-
-            album.setText(singlealbum);
-            imge.setImageResource(singleimage);
+        if (music == null) {
+            if (songsTv != null) songsTv.setVisibility(View.GONE);
+        } else {
+            if (songsTv != null) {
+                songsTv.setVisibility(View.VISIBLE);
+                if (position < music.size()) {
+                    songsTv.setText(music.get(position));
+                }
+            }
         }
 
-        if (singleimage == 0) {// in albums
-            imge.setImageBitmap(rimg.get(position));
-            album.setText(albums.get(position));
-
-
-        } else if (singleimage == -1) {//for all music
-
-            imge.setImageBitmap(rimg.get(position));
-            album.setText(albums.get(position));
+        if (singlealbum != null) {
+            if (albumTv != null) albumTv.setText(singlealbum);
+            if (imge != null) imge.setImageResource(singleimage);
+        } else if (singleimage == 0 || singleimage == -1) {
+            if (albums != null && position < albums.size()) {
+                if (albumTv != null) albumTv.setText(albums.get(position));
+            }
+            if (rimg != null && position < rimg.size()) {
+                if (imge != null) imge.setImageBitmap(rimg.get(position));
+            } else if (imge != null) {
+                imge.setImageResource(R.drawable.iconmain);
+            }
         }
 
         return vie;

@@ -3,11 +3,12 @@ package com.omar.acer.musicalstructure;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
-import android.support.constraint.ConstraintLayout;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 public class dialog {
     private final Context context;
@@ -18,33 +19,41 @@ public class dialog {
     }
 
     void Loading() {
+        if (dialogue != null && dialogue.isShowing()) {
+            return;
+        }
 
-      dialogue = new Dialog(context);
-      dialogue.setContentView(R.layout.dialogue);
+        dialogue = new Dialog(context);
+        dialogue.setContentView(R.layout.dialogue);
 
-      dialogue.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
+        if (dialogue.getWindow() != null) {
+            dialogue.getWindow().getDecorView().setBackgroundResource(android.R.color.transparent);
+            dialogue.getWindow().getAttributes().windowAnimations = androidx.appcompat.R.style.Widget_AppCompat_PopupMenu;
+        }
 
         final LinearLayout l = dialogue.findViewById(R.id.checkboxes);
-        l.setVisibility(View.GONE);
+        if (l != null) l.setVisibility(View.GONE);
+        
         final Button b = dialogue.findViewById(R.id.ok);
-        b.setVisibility(View.GONE);
+        if (b != null) b.setVisibility(View.GONE);
 
         TextView tv = dialogue.findViewById(R.id.textView);
-        tv.setText("Just a sec..");
-        tv.setTextColor(Color.MAGENTA);
+        if (tv != null) {
+            tv.setText("Just a sec..");
+            tv.setTextColor(Color.MAGENTA);
+        }
+
         final ConstraintLayout c = dialogue.findViewById(R.id.dialogueback);
-        c.setBackgroundColor(context.getResources().getColor(R.color.lighterblack));
-
-
-        dialogue.getWindow().getAttributes().windowAnimations = R.style.Widget_AppCompat_PopupMenu;
+        if (c != null) {
+            c.setBackgroundColor(context.getResources().getColor(R.color.lighterblack));
+        }
 
         dialogue.show();
-
-
     }
 
     void dismiss() {
-       dialogue.dismiss();
+        if (dialogue != null && dialogue.isShowing()) {
+            dialogue.dismiss();
+        }
     }
-
 }
