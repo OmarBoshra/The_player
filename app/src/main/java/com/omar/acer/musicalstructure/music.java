@@ -33,8 +33,6 @@ public class music extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music);
 
-        loading.Loading();
-
         Button tohome = findViewById(R.id.toHome);
         Button toalbum = findViewById(R.id.toalbums);
         Button tonowplaying = findViewById(R.id.toplayingsong);
@@ -44,8 +42,7 @@ public class music extends AppCompatActivity {
         toalbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loading.Loading();
-                musicinfo.navigation(music.this, 2, pref);
+                musicinfo.navigation(music.this, 2, pref, loading);
             }
         });
 
@@ -68,8 +65,10 @@ public class music extends AppCompatActivity {
             }
         });
 
+        ImageButton favoritAlbum = findViewById(R.id.favalbum);
+
         if (getIntent().hasExtra("almumname")) {
-            final ImageButton favoritAlbum = findViewById(R.id.favalbum);
+
             if (favoritAlbum != null) {
                 favoritAlbum.setVisibility(View.VISIBLE);
                 favoritAlbum.animate()
@@ -86,6 +85,8 @@ public class music extends AppCompatActivity {
                     }
                 });
             }
+        } else {
+            favoritAlbum.setVisibility(View.GONE);
         }
 
         musicListView = findViewById(R.id.musiclist);
@@ -143,7 +144,6 @@ public class music extends AppCompatActivity {
                         images.clear();
                         images.addAll(bmps);
                         adapter.notifyDataSetChanged();
-                        loading.dismiss();
                     }
                 });
             }
@@ -164,6 +164,18 @@ public class music extends AppCompatActivity {
     public void NewMusicPath(View view) {
         musicinfo.initializeIntent(music.this);
     }
+
+    public void RefreshMusic(View view) {
+        String musicUriStr = pref.getString("gotmusic", pref.getString("gotAlbums", pref.getString("gotparentSongFolderUri", null)));
+        if (musicUriStr != null) {
+            loading.Loading();
+            musicinfo.getUris(this, Uri.parse(musicUriStr), pref, 1);
+            finish();
+        } else {
+            Toast.makeText(this, "No folder to refresh", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     public void onBackPressed() {
         moveTaskToBack(true);

@@ -32,8 +32,6 @@ public class Albums extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_albums);
 
-        loading.Loading();
-
         pref = this.getSharedPreferences("MyPref", 0);
 
         Button tohome = findViewById(R.id.toHome);
@@ -62,8 +60,7 @@ public class Albums extends AppCompatActivity {
         gomusic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loading.Loading();
-                musicinfo.navigation(Albums.this, 1, pref);
+                musicinfo.navigation(Albums.this, 1, pref, loading);
             }
         });
 
@@ -160,11 +157,23 @@ public class Albums extends AppCompatActivity {
     public void NewAlbumsPath(View view) {
         musicinfo.initializeIntent(Albums.this);
     }
+
+    public void RefreshAlbums(View view) {
+        String albumsUriStr = pref.getString("gotAlbums", pref.getString("gotmusic", pref.getString("gotparentSongFolderUri", null)));
+        if (albumsUriStr != null) {
+            loading.Loading();
+            musicinfo.getUris(this, Uri.parse(albumsUriStr), pref, 2);
+            finish();
+        } else {
+            Toast.makeText(this, "No folder to refresh", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     public void onBackPressed() {
         moveTaskToBack(true);
-
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

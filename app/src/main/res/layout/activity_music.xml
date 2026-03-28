@@ -5,16 +5,36 @@
 
     android:background="@android:color/black">
 
-    <ImageButton
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:padding="8dp"
-        android:alpha="0"
-        android:src="@android:drawable/btn_star_big_on"
-        android:backgroundTint="@android:color/black"
-        android:id="@+id/favalbum"
-      />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:id="@+id/refreshMusic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:alpha="0.6"
+            android:src="@android:drawable/ic_menu_rotate"
+            android:backgroundTint="@android:color/black"
+            android:onClick="RefreshMusic" />
+
+        <ImageButton
+            android:id="@+id/favalbum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:alpha="0"
+            android:visibility="gone"
+            android:src="@android:drawable/btn_star_big_on"
+            android:backgroundTint="@android:color/black" />
+
+    </LinearLayout>
+
+
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -121,16 +121,14 @@ public class NowPlaying extends AppCompatActivity {
         findViewById(R.id.tomusic).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loading.Loading();
-                musicinfo.navigation(NowPlaying.this, 1, pref);
+                musicinfo.navigation(NowPlaying.this, 1, pref, loading);
             }
         });
 
         findViewById(R.id.toalbums).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loading.Loading();
-                musicinfo.navigation(NowPlaying.this, 2, pref);
+                musicinfo.navigation(NowPlaying.this, 2, pref, loading);
             }
         });
 
@@ -370,159 +368,55 @@ public class NowPlaying extends AppCompatActivity {
         if (mediaPlaybackService != null && mediaPlaybackService.isPlaying()) {
             play_pause.setImageResource(R.drawable.pause);
             pauseorplay = 0;
-        } else {
-            play_pause.setImageResource(R.drawable.play);
-            pauseorplay = 1;
         }
     }
 
-    private void getSongListAndPlay(final Uri parentUri, final Uri songUri) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final List<Uri> list = new ArrayList<>();
-                try {
-                    DocumentFile musicfile = DocumentFile.fromTreeUri(NowPlaying.this, parentUri);
-                    if (musicfile != null) {
-                        DocumentFile[] files = musicfile.listFiles();
-                        if (files != null) {
-                            for (DocumentFile file : files) {
-                                String name = file.getName();
-                                if (name != null && (name.toLowerCase().endsWith(".mp3") || name.toLowerCase().endsWith(".wav") ||
-                                                     name.toLowerCase().endsWith(".mp4") || name.toLowerCase().endsWith(".flac") ||
-                                                     name.toLowerCase().endsWith(".m4a"))) {
-                                    list.add(file.getUri());
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                             Toast.makeText(NowPlaying.this, "Error accessing folder", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
+    private String secondsToString(int duration) {
+        int minutes = (duration / 1000) / 60;
+        int seconds = (duration / 1000) % 60;
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
+    }
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (isFinishing()) return;
-                        playingMusicList = list;
-                        if (mediaPlaybackService != null) {
-                            mediaPlaybackService.setUris(playingMusicList);
-                        }
-
-                        Uri legitUri = songUri;
-                        position = -1;
-                        for (int i = 0; i < playingMusicList.size(); i++) {
-                            if (playingMusicList.get(i).equals(songUri)) {
-                                position = i;
-                                break;
-                            }
-                        }
-
-                        if (position == -1 && !playingMusicList.isEmpty()) {
-                            position = 0;
-                            legitUri = playingMusicList.get(0);
-                        }
-
-                        globalUri = legitUri;
-                        if (mediaPlaybackService != null) {
-                            mediaPlaybackService.setPosition(position);
-                            if (!(mediaPlaybackService.isPlaying() && legitUri != null && legitUri.equals(mediaPlaybackService.getFile()))) {
-                                mediaPlaybackService.init(legitUri);
-                                mediaPlaybackService.play();
-                            }
-                        }
-                        refreshSongUI(legitUri);
-                        loading.dismiss();
-                    }
-                });
-            }
-        }).start();
+    private void updateElapsedTime(int elapsed) {
+        if (!seekBarTouch) {
+            elapsedTimeSeekBar.setProgress(elapsed);
+        }
+        elapsedTimeTextView.setText(secondsToString(elapsed));
     }
 
     private void seekBar() {
-        elapsedTimeSeekBar.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_MOVE || event.getAction() == MotionEvent.ACTION_DOWN) {
-                    seekBarTouch = true;
-                } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                    seekBarTouch = false;
-                    v.performClick();
-                }
-                if (mediaPlaybackService != null) mediaPlaybackService.getTouchStatus(seekBarTouch);
-                return false;
-            }
-        });
-
         elapsedTimeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser && mediaPlaybackService != null) {
-                    mediaPlaybackService.seekTo(progress);
-                    elapsedTimeTextView.setText(secondsToString(progress));
+                if (fromUser) {
+                    updateElapsedTime(progress);
                 }
             }
-            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                seekBarTouch = true;
+            }
+
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+                seekBarTouch = false;
                 if (mediaPlaybackService != null) {
                     mediaPlaybackService.seekTo(seekBar.getProgress());
-                    if (!mediaPlaybackService.isPlaying()) {
-                        mediaPlaybackService.play();
-                        play_pause.setImageResource(R.drawable.pause);
-                        pauseorplay = 0;
-                    }
                 }
             }
         });
-    }
-
-    private void nextOrprev(boolean next, boolean completed) {
-        if (mediaPlaybackService == null) return;
-
-        if (!isSingle && playingMusicList != null && !playingMusicList.isEmpty()) {
-            if (next) {
-                position = (position < playingMusicList.size() - 1) ? position + 1 : 0;
-            } else {
-                position = (position > 0) ? position - 1 : playingMusicList.size() - 1;
-            }
-            globalUri = playingMusicList.get(position);
-            mediaPlaybackService.setPosition(position);
-            mediaPlaybackService.init(globalUri);
-            mediaPlaybackService.play();
-        } else if (globalUri != null) {
-            mediaPlaybackService.init(globalUri);
-            mediaPlaybackService.play();
-        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        musicinfo.issongopen = true;
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.registerReceiver(receiverElapsedTime, new IntentFilter(MediaPlaybackService.MPS_RESULT));
         lbm.registerReceiver(receiverCompleted, new IntentFilter(MediaPlaybackService.MPS_COMPLETED));
         lbm.registerReceiver(receiverNewSong, new IntentFilter(MediaPlaybackService.MPS_NEW_SONG));
-
         if (mediaPlaybackService != null) {
-            if (mediaPlaybackService.isPlaying()) {
-                play_pause.setImageResource(R.drawable.pause);
-                pauseorplay = 0;
-            } else {
-                play_pause.setImageResource(R.drawable.play);
-                pauseorplay = 1;
-            }
-            Uri current = mediaPlaybackService.getFile();
-            if (current != null && !current.equals(globalUri)) {
-                globalUri = current;
-                refreshSongUI(current);
-            }
+            showMusic();
         }
     }
 
@@ -536,44 +430,66 @@ public class NowPlaying extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        musicinfo.issongopen = false;
-    }
-
-    private void updateElapsedTime(int time) {
-        if (!seekBarTouch && !isFinishing()) {
-            elapsedTimeSeekBar.setProgress(time);
-            elapsedTimeTextView.setText(secondsToString(time));
-        }
-    }
-
-    private String secondsToString(int pTime) {
-        int seconds = pTime / 1000;
-        return String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60);
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
+        unbindService(connection);
         musicinfo.issongopen = false;
-        try {
-            unbindService(connection);
-        } catch (Exception ignored) {}
     }
 
-    @Override
-    public void onBackPressed() {
-        moveTaskToBack(true);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && data != null) {
-            musicinfo.getUris(this, data.getData(), pref, requestCode);
-        } else {
-            loading.dismiss();
+    private void nextOrprev(boolean next, boolean automatic) {
+        if (mediaPlaybackService == null) return;
+        
+        if (isSingle) {
+             mediaPlaybackService.seekTo(0);
+             mediaPlaybackService.play();
+             return;
         }
+
+        if (next) {
+            position++;
+            if (position >= playingMusicList.size()) position = 0;
+        } else {
+            position--;
+            if (position < 0) position = playingMusicList.size() - 1;
+        }
+
+        Uri nextUri = playingMusicList.get(position);
+        globalUri = nextUri;
+        mediaPlaybackService.init(nextUri);
+        mediaPlaybackService.play();
+        mediaPlaybackService.setPosition(position);
+        refreshSongUI(nextUri);
+    }
+
+    private void getSongListAndPlay(final Uri folderUri, final Uri selectedSong) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DocumentFile df = DocumentFile.fromTreeUri(NowPlaying.this, folderUri);
+                final List<Uri> uris = musicinfo.getFiles(df, 1, NowPlaying.this, null);
+                
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        playingMusicList = uris;
+                        mediaPlaybackService.setUris(playingMusicList);
+                        
+                        for (int i = 0; i < playingMusicList.size(); i++) {
+                            if (playingMusicList.get(i).equals(selectedSong)) {
+                                position = i;
+                                break;
+                            }
+                        }
+                        
+                        globalUri = selectedSong;
+                        mediaPlaybackService.init(selectedSong);
+                        mediaPlaybackService.play();
+                        mediaPlaybackService.setPosition(position);
+                        refreshSongUI(selectedSong);
+                        loading.dismiss();
+                    }
+                });
+            }
+        }).start();
     }
 }

@@ -289,7 +289,7 @@ class musicinfo {
         }
     }
 
-    static void navigation(final Activity activity, final int requestcode, final SharedPreferences pref) {
+    static void navigation(final Activity activity, final int requestcode, final SharedPreferences pref, dialog loading) {
         switch (requestcode) {
             case 3:
                 if (pref.contains("gotmusic"))
@@ -309,26 +309,36 @@ class musicinfo {
                 }
                 break;
             case 2:
-                String albumsUriStr = pref.getString("gotAlbums", pref.getString("gotmusic", pref.getString("gotparentSongFolderUri", null)));
-                if (albumsUriStr != null) {
-                    getUris(activity, Uri.parse(albumsUriStr), pref, 2);
+                if (albumUris != null && !albumUris.isEmpty()) {
+                    intents(activity, 2, null);
                 } else {
-                    final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                    Toast.makeText(activity, "Choose The Albums folder", Toast.LENGTH_LONG).show();
-                    activity.startActivityForResult(Intent.createChooser(intent, "Choose The Albums folder"), 2);
-                    return;
+                    String albumsUriStr = pref.getString("gotAlbums", pref.getString("gotmusic", pref.getString("gotparentSongFolderUri", null)));
+                    if (albumsUriStr != null) {
+                        if (loading != null) loading.Loading();
+                        getUris(activity, Uri.parse(albumsUriStr), pref, 2);
+                    } else {
+                        final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                        Toast.makeText(activity, "Choose The Albums folder", Toast.LENGTH_LONG).show();
+                        activity.startActivityForResult(Intent.createChooser(intent, "Choose The Albums folder"), 2);
+                        return;
+                    }
                 }
                 if (!(activity instanceof NowPlaying)) activity.finish();
                 break;
             case 1:
-                String musicUriStr = pref.getString("gotmusic", pref.getString("gotAlbums", pref.getString("gotparentSongFolderUri", null)));
-                if (musicUriStr != null) {
-                    getUris(activity, Uri.parse(musicUriStr), pref, 1);
+                if (musicUris != null && !musicUris.isEmpty()) {
+                    intents(activity, 1, null);
                 } else {
-                    final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                    Toast.makeText(activity, "Choose The playlist folder", Toast.LENGTH_LONG).show();
-                    activity.startActivityForResult(Intent.createChooser(intent, "Choose The playlist folder"), 1);
-                    return;
+                    String musicUriStr = pref.getString("gotmusic", pref.getString("gotAlbums", pref.getString("gotparentSongFolderUri", null)));
+                    if (musicUriStr != null) {
+                        if (loading != null) loading.Loading();
+                        getUris(activity, Uri.parse(musicUriStr), pref, 1);
+                    } else {
+                        final Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                        Toast.makeText(activity, "Choose The playlist folder", Toast.LENGTH_LONG).show();
+                        activity.startActivityForResult(Intent.createChooser(intent, "Choose The playlist folder"), 1);
+                        return;
+                    }
                 }
                 if (!(activity instanceof NowPlaying)) activity.finish();
                 break;

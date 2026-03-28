@@ -103,8 +103,7 @@ public class MainActivity extends AppCompatActivity {
         toalbum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                loading.Loading();
-                musicinfo.navigation(MainActivity.this, 2, pref);
+                musicinfo.navigation(MainActivity.this, 2, pref, loading);
             }
         });
 
@@ -120,8 +119,7 @@ public class MainActivity extends AppCompatActivity {
         tomusic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                loading.Loading();
-                musicinfo.navigation(MainActivity.this, 1, pref);
+                musicinfo.navigation(MainActivity.this, 1, pref, loading);
             }
         });
     }
